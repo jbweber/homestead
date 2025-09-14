@@ -51,19 +51,84 @@ hypervisor_networks:
       - ip: '10.100.102.102'
         mac: 'be:ef:0a:64:66:66'
         name: 'vm-102'
+      - ip: '10.100.102.103'
+        mac: 'be:ef:0a:64:66:67'
+        name: 'vm-103'
+      - ip: '10.100.102.104'
+        mac: 'be:ef:0a:64:66:68'
+        name: 'vm-104'
+      - ip: '10.100.102.105'
+        mac: 'be:ef:0a:64:66:69'
+        name: 'vm-105'
+      - ip: '10.100.102.106'
+        mac: 'be:ef:0a:64:66:6a'
+        name: 'vm-106'
+      - ip: '10.100.102.107'
+        mac: 'be:ef:0a:64:66:6b'
+        name: 'vm-107'
+      - ip: '10.100.102.108'
+        mac: 'be:ef:0a:64:66:6c'
+        name: 'vm-108'
+      - ip: '10.100.102.109'
+        mac: 'be:ef:0a:64:66:6d'
+        name: 'vm-109'
+      - ip: '10.100.102.110'
+        mac: 'be:ef:0a:64:66:6e'
+        name: 'vm-110'
+      - ip: '10.100.102.111'
+        mac: 'be:ef:0a:64:66:6f'
+        name: 'vm-111'
+      - ip: '10.100.102.112'
+        mac: 'be:ef:0a:64:66:70'
+        name: 'vm-112'
+      - ip: '10.100.102.113'
+        mac: 'be:ef:0a:64:66:71'
+        name: 'vm-113'
+      - ip: '10.100.102.114'
+        mac: 'be:ef:0a:64:66:72'
+        name: 'vm-114'
+      - ip: '10.100.102.115'
+        mac: 'be:ef:0a:64:66:73'
+        name: 'vm-115'
+      - ip: '10.100.102.116'
+        mac: 'be:ef:0a:64:66:74'
+        name: 'vm-116'
+      - ip: '10.100.102.117'
+        mac: 'be:ef:0a:64:66:75'
+        name: 'vm-117'
+      - ip: '10.100.102.118'
+        mac: 'be:ef:0a:64:66:76'
+        name: 'vm-118'
+      - ip: '10.100.102.119'
+        mac: 'be:ef:0a:64:66:77'
+        name: 'vm-119'
+      - ip: '10.100.102.120'
+        mac: 'be:ef:0a:64:66:78'
+        name: 'vm-120'
+      - ip: '10.100.102.121'
+        mac: 'be:ef:0a:64:66:79'
+        name: 'vm-121'
+      - ip: '10.100.102.122'
+        mac: 'be:ef:0a:64:66:7a'
+        name: 'vm-122'
+      - ip: '10.100.102.123'
+        mac: 'be:ef:0a:64:66:7b'
+        name: 'vm-123'
+      - ip: '10.100.102.124'
+        mac: 'be:ef:0a:64:66:7c'
+        name: 'vm-124'
+      - ip: '10.100.102.125'
+        mac: 'be:ef:0a:64:66:7d'
+        name: 'vm-125'
 
-hypervisor_machines:
+hypervisor_machines:        
   vm-101:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
     name: 'vm-101'
     fqdn: 'vm-101.102.cofront.xyz'
     boot_disk_size_gb: '20'
-    data_disks:
-      - device: 'vdb'
-        size_gb: '50'
-      - device: 'vdc'
-        size_gb: '50'        
+    data_disks: []
     memory_gib: '4'
     vcpus: '2'
     networks:
@@ -72,7 +137,7 @@ hypervisor_machines:
         mac: 'be:ef:0a:64:66:65'
   vm-102:
     cpu_mode: 'host-passthrough'
-    image_template: 'ubuntu-24.04-server'
+    image_template: 'fedora-42-cloud'
     name: 'vm-102'
     fqdn: 'vm-102.102.cofront.xyz'
     boot_disk_size_gb: '20'
@@ -83,3 +148,302 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:66'
+  vm-103:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-103'
+    fqdn: 'vm-103.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:67'
+  vm-104:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-104'
+    fqdn: 'vm-104.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:68'
+  vm-105:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-105'
+    fqdn: 'vm-105.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:69'
+  vm-106:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-106'
+    fqdn: 'vm-106.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:6a'
+  vm-107:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-107'
+    fqdn: 'vm-107.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:6b'
+  vm-108:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-108'
+    fqdn: 'vm-108.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:6c'
+  vm-109:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-109'
+    fqdn: 'vm-109.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:6d'
+  vm-110:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-110'
+    fqdn: 'vm-110.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:6e'
+  vm-111:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-111'
+    fqdn: 'vm-111.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:6f'
+  vm-112:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-112'
+    fqdn: 'vm-112.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:70'
+  vm-113:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-113'
+    fqdn: 'vm-113.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:71'
+  vm-114:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-114'
+    fqdn: 'vm-114.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:72'
+  vm-115:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-115'
+    fqdn: 'vm-115.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:73'
+  vm-116:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-116'
+    fqdn: 'vm-116.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:74'
+  vm-117:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-117'
+    fqdn: 'vm-117.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:75'
+  vm-118:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-118'
+    fqdn: 'vm-118.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:76'
+  vm-119:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-119'
+    fqdn: 'vm-119.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:77'
+  vm-120:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-120'
+    fqdn: 'vm-120.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:78'
+  vm-121:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-121'
+    fqdn: 'vm-121.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:79'
+  vm-122:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-122'
+    fqdn: 'vm-122.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:7a'
+  vm-123:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-123'
+    fqdn: 'vm-123.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:7b'
+  vm-124:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-124'
+    fqdn: 'vm-124.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:7c'
+  vm-125:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-125'
+    fqdn: 'vm-125.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:7d'
