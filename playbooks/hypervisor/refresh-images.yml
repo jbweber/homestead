@@ -1,0 +1,7 @@
+---
+- name: Refresh VM images on hypervisors
+  hosts: hypervisor
+  gather_facts: false
+  become: true
+  roles:
+    - role: vm-image-download

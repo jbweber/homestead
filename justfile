@@ -17,3 +17,6 @@ create-vm hypervisor vm:
 
 destroy-vm hypervisor vm:
     ansible-playbook -i inventory/hypervisors playbooks/hypervisor/destroy.yml --limit {{hypervisor}} -e machine_name={{vm}}
+
+refresh-images:
+    ansible-playbook -i inventory/hypervisors playbooks/hypervisor/refresh-images.yml

@@ -14,8 +14,3 @@
       become: true
     - role: vm-image-download
       become: true
-
-  post_tasks:
-    - name: Debug
-      ansible.builtin.debug:
-        msg: "{{ prepare_interface_name }}"
