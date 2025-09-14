@@ -1,0 +1,37 @@
+---
+
+- name: Place machine configs
+  ansible.builtin.copy:
+    content: "{{ nocloud_metadata_machines | default({}) | to_nice_yaml }}"
+    dest: /var/lib/libvirt/nocloud-metadata/machines.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart nocloud-metadata
+
+- name: Place network configs
+  ansible.builtin.copy:
+    content: "{{ nocloud_metadata_networks | default([]) | to_nice_yaml }}"
+    dest: /var/lib/libvirt/nocloud-metadata/networks.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart nocloud-metadata
+
+- name: Place SSH keys
+  ansible.builtin.copy:
+    content: "{{ nocloud_metadata_ssh_keys | default([]) | to_nice_yaml }}"
+    dest: /var/lib/libvirt/nocloud-metadata/ssh_keys.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart nocloud-metadata
+
+- name: Place root password hash
+  ansible.builtin.copy:
+    content: "{{ cloudinit_root_password_hash | default('!') }}"
+    dest: /var/lib/libvirt/nocloud-metadata/root_password_hash.txt
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart nocloud-metadata

@@ -1,0 +1,83 @@
+<domain type="kvm">
+    <name>{{ libvirt_create_machine.name }}</name>
+    <memory unit="GiB">{{ libvirt_create_machine.memory_gib }}</memory>
+    <!-- no placement uses numatune to advise -->
+    <vcpu placement="static">{{ libvirt_create_machine.vcpus }}</vcpu>
+    <metadata></metadata>
+    <os firmware='efi'>
+        <type arch="x86_64">hvm</type>
+        <boot dev="hd"/>
+        <bios useserial="yes"/>
+        <smbios mode='sysinfo'/>
+    </os>
+    <sysinfo type="smbios">
+        <system>
+            <entry name="serial">ds=nocloud;s={{ nocloud_metadata_url }};</entry>
+        </system>
+    </sysinfo>
+    <features>
+        <acpi/>
+        <apic/>
+        <pae/>
+    </features>
+    <cpu mode="{{ libvirt_create_machine.cpu_mode | default('host-model') }}">
+        <model fallback="allow"/>
+    </cpu>
+    <clock offset="utc">
+        <timer name="rtc" tickpolicy="catchup"/>
+        <timer name="pit" tickpolicy="delay"/>
+        <timer name="hpet" present="no"/>
+    </clock>
+    <on_crash>restart</on_crash>
+    <on_poweroff>destroy</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <devices>
+        <emulator>{{ qemu_emulator }}</emulator>
+
+        <disk type="file" device="disk">
+            <driver name="qemu" type="qcow2" cache="none"/>
+            <source file="/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/disk_vda.qcow2"/>
+            <target dev="vda" bus="virtio"/>
+        </disk>
+
+{% for data_disk in libvirt_create_machine.data_disks | default([]) %}
+        <disk type="file" device="disk">
+            <driver name="qemu" type="qcow2" cache="none"/>
+            <source file="/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/disk_{{ data_disk.device }}.qcow2"/>
+            <target dev="{{ data_disk.device }}" bus="virtio"/>
+        </disk>
+
+{% endfor %}
+
+{% for network in libvirt_create_machine.networks %}
+        <interface type="{{ network.type }}">
+{% if network.source | default("none") != "none" %}
+            <source {{ network.type }}="{{ network.source }}"/>
+{% endif %}
+{% if network.target | default("") != "" %}
+            <target dev="{{ network.target }}"/>
+{% endif %}
+            <mac address="{{ network.mac }}"/>
+            <model type="virtio"/>
+        </interface>
+{% endfor %}
+
+        <controller type="pci" index="0" model="pci-root"/>
+
+        <serial type="pty">
+            <target port="0"/>
+        </serial>
+        <console type="pty">
+            <target type="serial" port="0"/>
+        </console>
+
+        <memballoon model="virtio"/>
+{% if libvirt_create_machine.vnc_port | default(False) %}
+        <input type='tablet' bus='usb'/>
+        <graphics type='vnc' port='{{ libvirt_create_machine.vnc_port }}' listen='{{ libvirt_create_machine.vnc_listen | default("127.0.0.1") }}'/>
+        <video>
+            <model type='vga'/>
+        </video>
+{% endif %}
+    </devices>
+</domain>

@@ -1,0 +1,85 @@
+---
+
+prepare_interface_name: "{{ systemd_networkd_interfaces[0].interface_name }}"
+
+# Configurable metadata service port
+nocloud_metadata_port: 8041
+nocloud_metadata_url: "http://{{ hypervisor_networks[0].address }}:{{ nocloud_metadata_port }}/"
+qemu_emulator: '/usr/bin/qemu-kvm'
+
+systemd_networkd_interfaces:
+  - interface_name: 'enp1s0'
+    interface_type: 'dhcp'
+    config_type: 'network'
+    order: '10'
+
+  - interface_name: 'vm1'
+    interface_type: 'bridge'
+    config_type: 'netdev'
+    order: '20'
+
+  - interface_name: 'vm1'
+    interface_type: 'bridge'
+    config_type: 'network'
+    order: '25'
+    ipv4_address: '10.100.102.2'
+    ipv4_prefix: '24'
+    ipv4_forward: false
+
+  - interface_name: 'enp2s0'
+    interface_type: 'bridge-member'
+    config_type: 'network'
+    bridge_name: 'vm1'
+    order: '30'
+
+hypervisor_ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
+cloudinit_root_password_hash: "{{ vault_root_password_hash }}"
+
+hypervisor_networks:
+  - name: 'vm1'
+    interface_name: 'vm1'
+    address: '10.100.102.2'
+    netmask: '255.255.255.0'
+    gateway: '10.100.102.1'
+    domain_name: '102.cofront.xyz'
+    dns_servers:
+      - '10.100.102.1'
+    dhcp_assignments:
+      - ip: '10.100.102.101'
+        mac: 'be:ef:0a:64:66:65'
+        name: 'vm-101'
+      - ip: '10.100.102.102'
+        mac: 'be:ef:0a:64:66:66'
+        name: 'vm-102'
+
+hypervisor_machines:
+  vm-101:
+    cpu_mode: 'host-passthrough'
+    image_template: 'fedora-42-cloud'
+    name: 'vm-101'
+    fqdn: 'vm-101.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks:
+      - device: 'vdb'
+        size_gb: '50'
+      - device: 'vdc'
+        size_gb: '50'        
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:65'
+  vm-102:
+    cpu_mode: 'host-passthrough'
+    image_template: 'ubuntu-24.04-server'
+    name: 'vm-102'
+    fqdn: 'vm-102.102.cofront.xyz'
+    boot_disk_size_gb: '20'
+    data_disks: []
+    memory_gib: '4'
+    vcpus: '2'
+    networks:
+      - source: 'vm1'
+        type: 'bridge'
+        mac: 'be:ef:0a:64:66:66'

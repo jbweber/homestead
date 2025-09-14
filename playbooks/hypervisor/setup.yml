@@ -1,0 +1,21 @@
+---
+- name: Hypervisor Setup
+  hosts: hypervisor
+  roles:
+    - role: systemd-networkd
+      become: true
+    - role: libvirt
+      become: true
+    - role: nocloud-metadata
+      vars:
+        nocloud_metadata_machines: "{{ hypervisor_machines }}"
+        nocloud_metadata_networks: "{{ hypervisor_networks }}"
+        nocloud_metadata_ssh_keys: "{{ hypervisor_ssh_keys }}"
+      become: true
+    - role: vm-image-download
+      become: true
+
+  post_tasks:
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "{{ prepare_interface_name }}"

@@ -1,0 +1,61 @@
+---
+
+- name: Set image file path
+  ansible.builtin.set_fact:
+    vm_image_download_file_path: "{{ vm_images_base_path }}/{{ vm_image_download_image_config.filename }}"
+
+- name: Check if image already exists
+  ansible.builtin.stat:
+    path: "{{ vm_image_download_file_path }}"
+  register: vm_image_download_existing_file
+
+- name: Download VM image
+  ansible.builtin.get_url:
+    url: "{{ vm_image_download_image_config.download_url }}"
+    dest: "{{ vm_image_download_file_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+    timeout: "{{ vm_image_download_timeout }}"
+    force: "{{ vm_image_download_force }}"
+  register: vm_image_download_result
+  when: not vm_image_download_existing_file.stat.exists or vm_image_download_force
+
+- name: Download checksum file for verification
+  ansible.builtin.get_url:
+    url: "{{ vm_image_download_image_config.checksum_url }}"
+    dest: "{{ vm_images_base_path }}/{{ vm_image_download_image_name }}.checksum"
+    mode: '0644'
+    owner: root
+    group: root
+    timeout: 30
+    force: "{{ vm_image_download_force }}"
+  when:
+    - vm_image_download_verify_checksum
+    - vm_image_download_image_config.checksum_url is defined
+    - (not vm_image_download_existing_file.stat.exists or vm_image_download_force)
+
+- name: Verify image checksum
+  ansible.builtin.shell: |
+    cd {{ vm_images_base_path }}
+    if grep -q "{{ vm_image_download_image_config.filename }}" {{ vm_image_download_image_name }}.checksum; then
+      {{ vm_image_download_image_config.checksum_type }}sum -c {{ vm_image_download_image_name }}.checksum --ignore-missing
+    else
+      echo "Checksum file does not contain entry for {{ vm_image_download_image_config.filename }}"
+      exit 1
+    fi
+  register: vm_image_download_checksum_result
+  changed_when: false
+  when:
+    - vm_image_download_verify_checksum
+    - vm_image_download_image_config.checksum_url is defined
+    - (vm_image_download_result.changed or not vm_image_download_existing_file.stat.exists or vm_image_download_force)
+
+- name: Display image download status
+  ansible.builtin.debug:
+    msg: >
+      Image {{ vm_image_download_image_name }} ({{ vm_image_download_image_config.filename }})
+      {% if vm_image_download_result.changed %}downloaded successfully{% else %}already exists{% endif %}
+      {% if vm_image_download_verify_checksum and vm_image_download_image_config.checksum_url is defined %}
+      and checksum verified
+      {% endif %}

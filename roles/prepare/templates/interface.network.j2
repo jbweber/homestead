@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+
+[Match]
+Name={{ prepare_interface_name }}
+
+[Network]
+DHCP=yes
+
+[DHCPv4]
+UseDns=yes
+UseRoutes=yes
+UseHostname=no

@@ -1,0 +1,87 @@
+---
+
+- name: Validate root password hash is defined
+  ansible.builtin.fail:
+    msg: 'cloudinit_root_password_hash must be defined in vault for security (cannot be ! which disables login)'
+  when: cloudinit_root_password_hash is not defined or cloudinit_root_password_hash == '!'
+
+- name: Install packages
+  ansible.builtin.dnf:
+    name:
+      - python-flask
+      - python-paste
+      - python-waitress
+    state: present
+
+- name: Create metadata directory
+  ansible.builtin.file:
+    path: /var/lib/libvirt/nocloud-metadata
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Place nocloud-metadata service
+  ansible.builtin.copy:
+    src: nocloud-metadata.py
+    dest: /usr/bin/nocloud-metadata
+    owner: root
+    group: root
+    mode: '0755'
+  notify: Restart nocloud-metadata
+
+- name: Place nocloud-metadata unit
+  ansible.builtin.template:
+    src: nocloud-metadata.service.j2
+    dest: /etc/systemd/system/nocloud-metadata.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart nocloud-metadata
+
+- name: Enable and start nocloud-metadata service
+  ansible.builtin.systemd:
+    name: nocloud-metadata.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: Place machine configs
+  ansible.builtin.copy:
+    content: "{{ nocloud_metadata_machines | to_nice_yaml }}"
+    dest: /var/lib/libvirt/nocloud-metadata/machines.yaml
+    owner: root
+    group: root
+    mode: '0644'
+    force: false
+  notify: Restart nocloud-metadata
+
+- name: Place network configs
+  ansible.builtin.copy:
+    content: "{{ nocloud_metadata_networks | to_nice_yaml }}"
+    dest: /var/lib/libvirt/nocloud-metadata/networks.yaml
+    owner: root
+    group: root
+    mode: '0644'
+    force: false
+  notify: Restart nocloud-metadata
+
+- name: Place SSH keys
+  ansible.builtin.copy:
+    content: "{{ nocloud_metadata_ssh_keys | to_nice_yaml }}"
+    dest: /var/lib/libvirt/nocloud-metadata/ssh_keys.yaml
+    owner: root
+    group: root
+    mode: '0644'
+    force: false
+  notify: Restart nocloud-metadata
+
+- name: Place root password hash
+  ansible.builtin.copy:
+    content: "{{ cloudinit_root_password_hash }}"
+    dest: /var/lib/libvirt/nocloud-metadata/root_password_hash.txt
+    owner: root
+    group: root
+    mode: '0600'
+    force: false
+  notify: Restart nocloud-metadata

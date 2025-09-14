@@ -1,0 +1,8 @@
+---
+
+- name: Restart nocloud-metadata
+  ansible.builtin.systemd:
+    name: nocloud-metadata.service
+    daemon_reload: true
+    enabled: true
+    state: restarted

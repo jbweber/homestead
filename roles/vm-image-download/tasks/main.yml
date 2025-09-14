@@ -1,0 +1,17 @@
+---
+
+- name: Ensure VM images directory exists
+  ansible.builtin.file:
+    path: "{{ vm_images_base_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Download and verify VM images
+  ansible.builtin.include_tasks: download_image.yml
+  vars:
+    vm_image_download_image_name: "{{ item.key }}"
+    vm_image_download_image_config: "{{ item.value }}"
+  loop: "{{ vm_images | dict2items }}"
+  when: vm_image_download_images is not defined or item.key in vm_image_download_images

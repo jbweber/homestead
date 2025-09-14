@@ -1,0 +1,9 @@
+---
+- name: Initial System Preparation
+  hosts: prepare
+  roles:
+    - role: prepare
+      become: true
+  post_tasks:
+    - name: Ping
+      ansible.builtin.ping:

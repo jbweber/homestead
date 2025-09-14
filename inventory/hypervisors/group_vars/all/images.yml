@@ -1,0 +1,37 @@
+---
+
+# VM Image Repository
+# Defines available VM images with their paths, formats, and metadata
+
+vm_images_base_path: '/var/lib/libvirt/images'
+
+vm_images:
+  fedora-42-cloud:
+    filename: 'Fedora-Cloud-Base-UEFI-UKI-42-1.1.x86_64.qcow2'
+    format: 'qcow2'
+    description: 'Fedora 42 Cloud Base with UEFI/UKI support'
+    architecture: 'x86_64'
+    download_url: 'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-UEFI-UKI-42-1.1.x86_64.qcow2'
+    checksum_url: 'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-42-1.1-x86_64-CHECKSUM'
+    checksum_type: 'sha256'
+    
+  ubuntu-24.04-server:
+    filename: 'ubuntu-24.04-server-cloudimg-amd64.img'
+    format: 'qcow2'
+    description: 'Ubuntu 24.04 LTS Server Cloud Image'
+    architecture: 'amd64'
+    download_url: 'https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img'
+    checksum_url: 'https://cloud-images.ubuntu.com/releases/24.04/release/SHA256SUMS'
+    checksum_type: 'sha256'
+    
+  debian-12-generic:
+    filename: 'debian-12-generic-amd64.qcow2'
+    format: 'qcow2'
+    description: 'Debian 12 Generic Cloud Image'
+    architecture: 'amd64'
+    download_url: 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2'
+    checksum_url: 'https://cloud.debian.org/images/cloud/bookworm/latest/SHA512SUMS'
+    checksum_type: 'sha512'
+
+# Default image to use if none specified
+vm_default_image: 'fedora-42-cloud'

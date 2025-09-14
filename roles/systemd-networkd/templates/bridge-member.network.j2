@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+
+[Match]
+Name={{ item.interface_name }}
+
+[Network]
+Bridge={{ item.bridge_name }}

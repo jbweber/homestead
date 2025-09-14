@@ -1,0 +1,71 @@
+.ansible
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*.bak
+*.tmp
+*.~
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.Python
+*.egg
+venv/
+env/
+ENV/
+.venv/
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ansible
+*.retry
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Misc
+.env
+*.secret
+*.key
+*.pem
+vault.yml
+
+/metadata/build/*
+*grimoire.db
+coverage.html
+coverage.out
+server
+
+# Rust
+target/
+Cargo.lock
+*.pdb
+*.rlib
+
+# Metadata service specific
+metadata-service/src/instance/
+*.db
+*.sqlite
+*.sqlite3
+.coverage
