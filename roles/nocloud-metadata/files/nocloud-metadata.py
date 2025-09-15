@@ -10,16 +10,17 @@ from paste.translogger import TransLogger
 
 
 def find_dhcp_assignment(ip):
-    for network in networks:
-        for dhcp_assignment in network.get('dhcp_assignments', []):
-            if dhcp_assignment.get('ip', None) == ip:
-                return dhcp_assignment
-
-    for network in bgp_networks:
-        for dhcp_assignment in network.get('dhcp_assignments', []):
-            if dhcp_assignment.get('ip', None) == ip:
-                return dhcp_assignment
-
+    # Iterate over all machines, using the dict key as the name
+    for name, machine in machines.items():
+        for net in machine.get('networks', []):
+            if net.get('ip') == ip:
+                # Return a dict with name, mac, ip, and any other needed fields
+                return {
+                    'name': name,
+                    'mac': net.get('mac'),
+                    'ip': net.get('ip'),
+                    'machine': machine
+                }
     return None
 
 
@@ -35,6 +36,19 @@ def find_machine_by_ip(ip):
     m = find_machine(a.get('name', None))
     if m is None:
         return None
+
+    # If fqdn is missing, try to construct it from network data
+    if not m.get('fqdn'):
+        # Try to get domain from the first network
+        domain = None
+        for net in m.get('networks', []):
+            if net.get('domain'):
+                domain = net['domain']
+                break
+        if domain:
+            m['fqdn'] = f"{m.get('name', 'unknown')}.{domain}"
+        else:
+            m['fqdn'] = m.get('name', 'unknown')
 
     return m
 

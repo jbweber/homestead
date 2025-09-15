@@ -45,352 +45,235 @@ hypervisor_networks:
     dns_servers:
       - '10.100.102.1'
 
+base_vm: &base_vm
+  cpu_mode: 'host-passthrough'
+  image_template: 'fedora-42-cloud'
+  boot_disk_size_gb: '20'
+  data_disks: []
+  memory_gib: '4'
+  vcpus: '2'
+
 hypervisor_machines:     
   vm-101:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-101'
     fqdn: 'vm-101.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:65'
-        ip: '10.100.102.101'        
+        ip: '10.100.102.101'
   vm-102:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-102'
     fqdn: 'vm-102.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:66'
         ip: '10.100.102.102'
   vm-103:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-103'
     fqdn: 'vm-103.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:67'
         ip: '10.100.102.103'
   vm-104:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-104'
     fqdn: 'vm-104.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:68'
         ip: '10.100.102.104'
   vm-105:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-105'
     fqdn: 'vm-105.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:69'
         ip: '10.100.102.105'
   vm-106:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-106'
     fqdn: 'vm-106.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6a'
         ip: '10.100.102.106'
   vm-107:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-107'
     fqdn: 'vm-107.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6b'
         ip: '10.100.102.107'
   vm-108:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-108'
     fqdn: 'vm-108.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6c'
         ip: '10.100.102.108'
   vm-109:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-109'
     fqdn: 'vm-109.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6d'
         ip: '10.100.102.109'
   vm-110:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-110'
     fqdn: 'vm-110.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6e'
         ip: '10.100.102.110'
   vm-111:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-111'
     fqdn: 'vm-111.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6f'
         ip: '10.100.102.111'
   vm-112:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-112'
     fqdn: 'vm-112.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:70'
         ip: '10.100.102.112'
   vm-113:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-113'
     fqdn: 'vm-113.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:71'
         ip: '10.100.102.113'
   vm-114:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-114'
     fqdn: 'vm-114.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:72'
         ip: '10.100.102.114'
   vm-115:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-115'
     fqdn: 'vm-115.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:73'
         ip: '10.100.102.115'
   vm-116:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-116'
     fqdn: 'vm-116.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:74'
         ip: '10.100.102.116'
   vm-117:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-117'
     fqdn: 'vm-117.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:75'
         ip: '10.100.102.117'
   vm-118:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-118'
     fqdn: 'vm-118.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:76'
         ip: '10.100.102.118'
   vm-119:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-119'
     fqdn: 'vm-119.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:77'
         ip: '10.100.102.119'
   vm-120:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-120'
     fqdn: 'vm-120.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:78'
         ip: '10.100.102.120'
   vm-121:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-121'
     fqdn: 'vm-121.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:79'
         ip: '10.100.102.121'
   vm-122:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-122'
     fqdn: 'vm-122.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:7a'
         ip: '10.100.102.122'
   vm-123:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-123'
     fqdn: 'vm-123.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:7b'
         ip: '10.100.102.123'
   vm-124:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-124'
     fqdn: 'vm-124.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:7c'
         ip: '10.100.102.124'
   vm-125:
-    cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    <<: *base_vm
     name: 'vm-125'
     fqdn: 'vm-125.102.cofront.xyz'
-    boot_disk_size_gb: '20'
-    data_disks: []
-    memory_gib: '4'
-    vcpus: '2'
     networks:
       - source: 'vm1'
         type: 'bridge'
