@@ -1,12 +1,5 @@
 ---
 
-prepare_interface_name: "{{ systemd_networkd_interfaces[0].interface_name }}"
-
-# Configurable metadata service port
-nocloud_metadata_port: 8041
-nocloud_metadata_url: "http://{{ hypervisor_config.networks[0].address }}:{{ nocloud_metadata_port }}/"
-qemu_emulator: '/usr/bin/qemu-kvm'
-
 systemd_networkd_interfaces:
   - interface_name: 'bond0'
     interface_type: 'bond'

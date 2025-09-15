@@ -1,2 +1,5 @@
+[control_plane]
+vm-101.102.cofront.xyz ansible_user=fedora
+
 [node]
 super.fe.cofront.xyz

@@ -26,3 +26,9 @@
   loop_control:
     label: "{{ item.order }}-{{ item.interface_type }}-{{ item.interface_name }}.{{ item.config_type }}"
   notify: Restart systemd-networkd
+
+- name: Enable and start systemd-networkd service
+  ansible.builtin.systemd:
+    name: systemd-networkd
+    state: started
+    enabled: true

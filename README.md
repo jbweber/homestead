@@ -28,3 +28,6 @@ just destroy-vm gravity.fe.cofront.xyz vm-101
 ```
 
 Make sure you have Ansible and the required collections installed. For advanced usage, see the playbooks in `playbooks/hypervisor/`.
+
+## Kubernetes
+

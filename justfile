@@ -26,3 +26,6 @@ setup-hypervisor hypervisor:
 
 setup-kubernetes-node:
     ansible-playbook -i inventory/kubernetes playbooks/kubernetes/node-setup.yml
+
+prepare-host inventory host:
+    ansible-playbook -i inventory/{{inventory}} playbooks/prepare.yml --limit {{host}}
