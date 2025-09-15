@@ -1,0 +1,14 @@
+---
+- name: Node Setup
+  hosts: node
+  roles:
+    - role: systemd-networkd
+      become: true
+    # - role: kubeadm
+    #   become: true
+    # - role: dnsmasq
+    #   become: true
+    # - role: nocloud-metadata
+    #   vars:
+    #     nocloud_metadata_ssh_keys: "{{ node_ssh_keys }}"
+    #   become: true

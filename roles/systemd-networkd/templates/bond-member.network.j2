@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+[Match]
+Name={{ item.interface_name }}
+
+[Network]
+Bond={{ item.bond_name }}
+PrimarySlave={{ item.primary_slave | default('false') }}

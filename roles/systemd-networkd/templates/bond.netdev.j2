@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+
+[NetDev]
+Name={{ item.interface_name }}
+Kind=bond
+MACAddress={{ item.mac_address }}
+
+[Bond]
+Mode=active-backup
+PrimaryReselectPolicy=always
+MIIMonitorSec=1s
+UpDelaySec=2s
+DownDelaySec=5s

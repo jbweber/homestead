@@ -23,3 +23,6 @@ refresh-images:
 
 setup-hypervisor hypervisor:
     ansible-playbook -i inventory/hypervisors playbooks/hypervisor/setup.yml --limit {{hypervisor}}
+
+setup-kubernetes-node:
+    ansible-playbook -i inventory/kubernetes playbooks/kubernetes/node-setup.yml

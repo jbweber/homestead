@@ -1,0 +1,34 @@
+---
+
+prepare_interface_name: "{{ systemd_networkd_interfaces[0].interface_name }}"
+
+# Configurable metadata service port
+nocloud_metadata_port: 8041
+nocloud_metadata_url: "http://{{ hypervisor_config.networks[0].address }}:{{ nocloud_metadata_port }}/"
+qemu_emulator: '/usr/bin/qemu-kvm'
+
+systemd_networkd_interfaces:
+  - interface_name: 'bond0'
+    interface_type: 'bond'
+    config_type: 'netdev'
+    order: '10'
+    mac_address: '3c:ec:ef:43:1c:6e'
+  - interface_name: 'bond0'
+    interface_type: 'bond'
+    config_type: 'link'
+    order: '10'
+  - interface_name: 'bond0'
+    interface_type: 'dhcp'
+    config_type: 'network'
+    order: '20'
+  - interface_name: 'eno1'
+    interface_type: 'bond-member'
+    bond_name: 'bond0'
+    primary_slave: 'true'
+    config_type: 'network'
+    order: '30'
+  - interface_name: 'eno3'
+    interface_type: 'bond-member'
+    bond_name: 'bond0'
+    config_type: 'network'
+    order: '30'
