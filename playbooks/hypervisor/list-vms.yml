@@ -9,7 +9,7 @@
       when: ansible_play_hosts | length != 1
     - name: Show VMs defined in inventory
       ansible.builtin.debug:
-        msg: "VMs defined for {{ inventory_hostname }}: {{ hypervisor_machines.keys() | list }}"
+        msg: "VMs defined for {{ inventory_hostname }}: {{ hypervisor_config.machines.keys() | list }}"
     - name: Show running VMs on host
       community.libvirt.virt:
         command: list_vms

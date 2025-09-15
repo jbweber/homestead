@@ -4,7 +4,7 @@ prepare_interface_name: "{{ systemd_networkd_interfaces[0].interface_name }}"
 
 # Configurable metadata service port
 nocloud_metadata_port: 8041
-nocloud_metadata_url: "http://{{ hypervisor_networks[0].address }}:{{ nocloud_metadata_port }}/"
+nocloud_metadata_url: "http://{{ hypervisor_config.networks[0].address }}:{{ nocloud_metadata_port }}/"
 qemu_emulator: '/usr/bin/qemu-kvm'
 
 systemd_networkd_interfaces:
@@ -44,84 +44,8 @@ hypervisor_networks:
     domain_name: '102.cofront.xyz'
     dns_servers:
       - '10.100.102.1'
-    dhcp_assignments:
-      - ip: '10.100.102.101'
-        mac: 'be:ef:0a:64:66:65'
-        name: 'vm-101'
-      - ip: '10.100.102.102'
-        mac: 'be:ef:0a:64:66:66'
-        name: 'vm-102'
-      - ip: '10.100.102.103'
-        mac: 'be:ef:0a:64:66:67'
-        name: 'vm-103'
-      - ip: '10.100.102.104'
-        mac: 'be:ef:0a:64:66:68'
-        name: 'vm-104'
-      - ip: '10.100.102.105'
-        mac: 'be:ef:0a:64:66:69'
-        name: 'vm-105'
-      - ip: '10.100.102.106'
-        mac: 'be:ef:0a:64:66:6a'
-        name: 'vm-106'
-      - ip: '10.100.102.107'
-        mac: 'be:ef:0a:64:66:6b'
-        name: 'vm-107'
-      - ip: '10.100.102.108'
-        mac: 'be:ef:0a:64:66:6c'
-        name: 'vm-108'
-      - ip: '10.100.102.109'
-        mac: 'be:ef:0a:64:66:6d'
-        name: 'vm-109'
-      - ip: '10.100.102.110'
-        mac: 'be:ef:0a:64:66:6e'
-        name: 'vm-110'
-      - ip: '10.100.102.111'
-        mac: 'be:ef:0a:64:66:6f'
-        name: 'vm-111'
-      - ip: '10.100.102.112'
-        mac: 'be:ef:0a:64:66:70'
-        name: 'vm-112'
-      - ip: '10.100.102.113'
-        mac: 'be:ef:0a:64:66:71'
-        name: 'vm-113'
-      - ip: '10.100.102.114'
-        mac: 'be:ef:0a:64:66:72'
-        name: 'vm-114'
-      - ip: '10.100.102.115'
-        mac: 'be:ef:0a:64:66:73'
-        name: 'vm-115'
-      - ip: '10.100.102.116'
-        mac: 'be:ef:0a:64:66:74'
-        name: 'vm-116'
-      - ip: '10.100.102.117'
-        mac: 'be:ef:0a:64:66:75'
-        name: 'vm-117'
-      - ip: '10.100.102.118'
-        mac: 'be:ef:0a:64:66:76'
-        name: 'vm-118'
-      - ip: '10.100.102.119'
-        mac: 'be:ef:0a:64:66:77'
-        name: 'vm-119'
-      - ip: '10.100.102.120'
-        mac: 'be:ef:0a:64:66:78'
-        name: 'vm-120'
-      - ip: '10.100.102.121'
-        mac: 'be:ef:0a:64:66:79'
-        name: 'vm-121'
-      - ip: '10.100.102.122'
-        mac: 'be:ef:0a:64:66:7a'
-        name: 'vm-122'
-      - ip: '10.100.102.123'
-        mac: 'be:ef:0a:64:66:7b'
-        name: 'vm-123'
-      - ip: '10.100.102.124'
-        mac: 'be:ef:0a:64:66:7c'
-        name: 'vm-124'
-      - ip: '10.100.102.125'
-        mac: 'be:ef:0a:64:66:7d'
-        name: 'vm-125'
 
-hypervisor_machines:        
+hypervisor_machines:     
   vm-101:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -135,6 +59,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:65'
+        ip: '10.100.102.101'        
   vm-102:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -148,6 +73,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:66'
+        ip: '10.100.102.102'
   vm-103:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -161,6 +87,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:67'
+        ip: '10.100.102.103'
   vm-104:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -174,6 +101,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:68'
+        ip: '10.100.102.104'
   vm-105:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -187,6 +115,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:69'
+        ip: '10.100.102.105'
   vm-106:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -200,6 +129,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6a'
+        ip: '10.100.102.106'
   vm-107:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -213,6 +143,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6b'
+        ip: '10.100.102.107'
   vm-108:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -226,6 +157,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6c'
+        ip: '10.100.102.108'
   vm-109:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -239,6 +171,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6d'
+        ip: '10.100.102.109'
   vm-110:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -252,6 +185,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6e'
+        ip: '10.100.102.110'
   vm-111:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -265,6 +199,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:6f'
+        ip: '10.100.102.111'
   vm-112:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -278,6 +213,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:70'
+        ip: '10.100.102.112'
   vm-113:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -291,6 +227,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:71'
+        ip: '10.100.102.113'
   vm-114:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -304,6 +241,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:72'
+        ip: '10.100.102.114'
   vm-115:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -317,6 +255,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:73'
+        ip: '10.100.102.115'
   vm-116:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -330,6 +269,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:74'
+        ip: '10.100.102.116'
   vm-117:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -343,6 +283,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:75'
+        ip: '10.100.102.117'
   vm-118:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -356,6 +297,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:76'
+        ip: '10.100.102.118'
   vm-119:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -369,6 +311,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:77'
+        ip: '10.100.102.119'
   vm-120:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -382,6 +325,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:78'
+        ip: '10.100.102.120'
   vm-121:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -395,6 +339,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:79'
+        ip: '10.100.102.121'
   vm-122:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -408,6 +353,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:7a'
+        ip: '10.100.102.122'
   vm-123:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -421,6 +367,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:7b'
+        ip: '10.100.102.123'
   vm-124:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -434,6 +381,7 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:7c'
+        ip: '10.100.102.124'
   vm-125:
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
@@ -447,3 +395,9 @@ hypervisor_machines:
       - source: 'vm1'
         type: 'bridge'
         mac: 'be:ef:0a:64:66:7d'
+        ip: '10.100.102.125'
+
+
+hypervisor_config:
+  networks: "{{ hypervisor_networks }}"
+  machines: "{{ hypervisor_machines }}"

@@ -20,3 +20,6 @@ destroy-vm hypervisor vm:
 
 refresh-images:
     ansible-playbook -i inventory/hypervisors playbooks/hypervisor/refresh-images.yml
+
+setup-hypervisor hypervisor:
+    ansible-playbook -i inventory/hypervisors playbooks/hypervisor/setup.yml --limit {{hypervisor}}

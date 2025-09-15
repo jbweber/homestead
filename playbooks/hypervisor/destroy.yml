@@ -17,9 +17,9 @@
     - name: Fail if machine_name is not present for this host
       ansible.builtin.fail:
         msg: "machine_name '{{ machine_name }}' is not defined for host '{{ inventory_hostname }}'"
-      when: machine_name not in hypervisor_machines.keys() or hypervisor_machines[machine_name] is not defined
+      when: machine_name not in hypervisor_config.machines.keys() or hypervisor_config.machines[machine_name] is not defined
     - name: Run libvirt-destroy role
       ansible.builtin.include_role:
         name: libvirt-destroy
       vars:
-        libvirt_destroy_machine: "{{ hypervisor_machines[machine_name] }}"
+        libvirt_destroy_machine: "{{ hypervisor_config.machines[machine_name] }}"

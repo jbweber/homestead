@@ -9,13 +9,14 @@ port=0
 interface={{ network.interface_name }}
 
 dhcp-range=interface:{{ network.interface_name }},{{ network.address }},static,{{ network.netmask }}
-
-{% for host in network.dhcp_assignments %}
-dhcp-host={{ host.mac }},{{ host.name }},{{ host.ip }},24h
-{% endfor %}
-
 dhcp-option=interface:{{ network.interface_name }},3,{{ network.gateway }}
 dhcp-option=interface:{{ network.interface_name }},6,{{ network.dns_servers | join(',') }}
 dhcp-option=interface:{{ network.interface_name }},15,{{ network.domain_name }}
 
+{% endfor %}
+
+{% for name, data in dnsmasq_dhcp_assignments.items() %}
+{% for network in data.networks %}
+dhcp-host={{ network.mac }},{{ name }},{{ network.ip }},24h
+{% endfor %}
 {% endfor %}

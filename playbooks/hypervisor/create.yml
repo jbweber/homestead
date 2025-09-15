@@ -17,23 +17,24 @@
     - name: Fail if machine_name is not present for this host
       ansible.builtin.fail:
         msg: "machine_name '{{ machine_name }}' is not defined for host '{{ inventory_hostname }}'"
-      when: machine_name not in hypervisor_machines.keys() or hypervisor_machines[machine_name] is not defined
+      when: machine_name not in hypervisor_config.machines.keys() or hypervisor_config.machines[machine_name] is not defined
     - name: Run nocloud-metadata-content role
       ansible.builtin.include_role:
         name: nocloud-metadata-content
       vars:
-        nocloud_metadata_machines: "{{ hypervisor_machines }}"
-        nocloud_metadata_networks: "{{ hypervisor_networks }}"
+        nocloud_metadata_machines: "{{ hypervisor_config.machines }}"
+        nocloud_metadata_networks: "{{ hypervisor_config.networks }}"
         nocloud_metadata_ssh_keys: "{{ hypervisor_ssh_keys }}"
     - name: Run dnsmasq role
       ansible.builtin.include_role:
         name: dnsmasq
       vars:
-        dnsmasq_networks: "{{ hypervisor_networks }}"
+        dnsmasq_networks: "{{ hypervisor_config.networks }}"
+        dnsmasq_dhcp_assignments: "{{ hypervisor_config.machines }}"
     - name: Flush handlers before VM creation
       ansible.builtin.meta: flush_handlers
     - name: Run libvirt-create role
       ansible.builtin.include_role:
         name: libvirt-create
       vars:
-        libvirt_create_machine: "{{ hypervisor_machines[machine_name] }}"
+        libvirt_create_machine: "{{ hypervisor_config.machines[machine_name] }}"

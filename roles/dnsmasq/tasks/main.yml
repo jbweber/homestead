@@ -14,6 +14,11 @@
     mode: '0644'
   notify: Restart dnsmasq
 
+- name: Debug
+  ansible.builtin.debug:
+    var: dnsmasq_dhcp_assignments
+  when: dnsmasq_dhcp_assignments is defined
+
 - name: Configure dnsmasq DHCP options
   ansible.builtin.template:
     src: dhcp-options.conf.j2
