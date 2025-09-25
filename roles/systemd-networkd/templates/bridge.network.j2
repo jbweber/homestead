@@ -3,6 +3,8 @@
 [Match]
 Name={{ item.interface_name }}
 
+{% if item.ipv4_address is defined and item.ipv4_address != '' %}
 [Network]
 Address={{ item.ipv4_address }}/{{ item.ipv4_prefix }}
 IPV4Forwarding={% if item.ipv4_forwarding is defined and item.ipv4_forwarding %}yes{% else %}no{% endif %}
+{% endif %}

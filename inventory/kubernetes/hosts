@@ -2,4 +2,4 @@
 vm-101.102.cofront.xyz ansible_user=fedora
 
 [worker]
-#super.fe.cofront.xy
+super.fe.cofront.xyz

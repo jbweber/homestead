@@ -1,9 +1,0 @@
----
-# LoadBalancer IP Pool for VM static IPs
-apiVersion: cilium.io/v2
-kind: CiliumLoadBalancerIPPool
-metadata:
-  name: vm-static-ips
-spec:
-  blocks:
-  - cidr: "10.200.0.0/16"

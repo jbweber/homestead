@@ -1,0 +1,74 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-bridge-only-static
+  namespace: default
+spec:
+  running: true
+  template:
+    metadata:
+      annotations:
+        k8s.v1.cni.cncf.io/networks: '[
+          {
+            "name": "vm1-bridge-static",
+            "mac": "02:00:00:0b:01:02",
+            "ips": ["10.254.254.75/24"]
+          }
+        ]'
+      labels:
+        kubevirt.io/vm: vm-bridge-only-static
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: super.fe.cofront.xyz
+      domain:
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: containerdisk
+          - disk:
+              bus: virtio
+            name: cloudinitdisk
+          interfaces:
+          - name: bridge-interface
+            bridge: {}
+            macAddress: "02:00:00:0b:01:02"
+          rng: {}
+        machine:
+          type: q35
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 1
+      networks:
+      - name: bridge-interface
+        multus:
+          networkName: vm1-bridge-static
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - name: containerdisk
+        containerDisk:
+          image: quay.io/containerdisks/fedora:42
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          userData: |
+            #cloud-config
+            password: fedora
+            chpasswd: { expire: False }
+            ssh_pwauth: True
+            hostname: vm-bridge-only-static
+          networkData: |
+            version: 2
+            ethernets:
+              primary:
+                match:
+                  macaddress: "02:00:00:0b:01:02"
+                addresses:
+                  - 10.254.254.75/24
+                gateway4: 10.254.254.1
+                nameservers:
+                  addresses:
+                    - 10.254.254.1
+                    - 8.8.8.8
+                  search:
+                    - localdomain

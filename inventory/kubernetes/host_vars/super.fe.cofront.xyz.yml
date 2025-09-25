@@ -25,3 +25,19 @@ systemd_networkd_interfaces:
     bond_name: 'bond0'
     config_type: 'network'
     order: '30'
+
+  - interface_name: 'vm1'
+    interface_type: 'bridge'
+    config_type: 'netdev'
+    order: '20'
+
+  - interface_name: 'vm1'
+    interface_type: 'bridge'
+    config_type: 'network'
+    order: '25'
+
+  - interface_name: 'eno4'
+    interface_type: 'bridge-member'
+    config_type: 'network'
+    bridge_name: 'vm1'
+    order: '30'

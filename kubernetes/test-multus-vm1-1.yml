@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-multus-vm1-1
+  annotations:
+    k8s.v1.cni.cncf.io/networks: vm1-bridge-network
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: super.fe.cofront.xyz
+  containers:
+  - name: test-container
+    image: registry.k8s.io/e2e-test-images/busybox:1.29-2
+    command: ["sleep", "3600"]
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "100m"
+      limits:
+        memory: "128Mi"
+        cpu: "200m"
