@@ -1,38 +1,34 @@
-storage:
-  rootDirectory: {{ zot_data_dir }}
-  dedupe: {{ zot_dedupe | lower }}
-  gc: {{ zot_gc | lower }}
-  gcDelay: {{ zot_gc_delay }}
-  gcInterval: {{ zot_gc_interval }}
-  subPaths:
+{
+  "distSpecVersion": "1.0.1",
+  "storage": {
+    "rootDirectory": "{{ zot_data_dir }}"
+  },
+  "http": {
+    "address": "{{ zot_bind_address }}",
+    "port": "{{ zot_port }}"
+  },
+  "log": {
+    "level": "{{ zot_log_level }}"
+  },
+  "extensions": {
+    "sync": {
+      "enable": true,
+      "registries": [
 {% for registry in zot_registries %}
-    {{ registry.path }}:
-      rootDirectory: {{ zot_data_dir }}{{ registry.path }}
-      dedupe: false
+        {
+          "urls": ["{{ registry.url }}"],
+          "content": [
+            "prefix": "**",
+            "destination": "/{{ registry.name }}"
+          ],
+          "onDemand": true,
+          "tlsVerify": true
+        }{% if not loop.last %},{% endif %}
 {% endfor %}
-
-http:
-  address: {{ zot_bind_address }}
-  port: {{ zot_port }}
-
-log:
-  level: {{ zot_log_level }}
-
-extensions:
-  sync:
-    enable: true
-    registries:
-{% for registry in zot_registries %}
-      - urls:
-          - {{ registry.url }}
-        onDemand: true
-        tlsVerify: true
-        content:
-          - prefix: "**"
-            destination: "{{ registry.path }}"
-{% endfor %}
-  search:
-    enable: {{ zot_search_enabled | lower }}
-  scrub:
-    enable: {{ zot_scrub_enabled | lower }}
-    interval: {{ zot_scrub_interval }}
+      ]
+    },
+    "search": {
+      "enable": {{ zot_search_enabled | lower }}
+    }
+  }
+}

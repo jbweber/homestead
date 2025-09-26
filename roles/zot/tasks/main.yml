@@ -20,15 +20,6 @@
     - "{{ zot_data_dir }}"
     - "{{ zot_config_dir }}"
 
-- name: Create registry subdirectories
-  ansible.builtin.file:
-    path: "{{ zot_data_dir }}{{ item.path }}"
-    state: directory
-    owner: zot
-    group: zot
-    mode: '0755'
-  loop: "{{ zot_registries }}"
-
 - name: Download zot binary with checksum verification
   ansible.builtin.get_url:
     url: "https://github.com/project-zot/zot/releases/download/v{{ zot_version }}/{{ zot_binary_name }}"
@@ -46,7 +37,7 @@
     owner: zot
     group: zot
     mode: '0644'
-  notify: restart zot
+  notify: Restart zot
 
 - name: Deploy zot systemd unit file
   ansible.builtin.template:
@@ -56,8 +47,8 @@
     group: root
     mode: '0644'
   notify:
-    - reload systemd
-    - restart zot
+    - Reload systemd
+    - Restart zot
 
 - name: Start and enable zot service
   ansible.builtin.systemd:

@@ -1,0 +1,7 @@
+---
+
+systemd_networkd_interfaces:
+  - interface_name: 'ens2'
+    interface_type: 'dhcp'
+    config_type: 'network'
+    order: '10'

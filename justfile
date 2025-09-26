@@ -24,8 +24,8 @@ refresh-images:
 setup-hypervisor hypervisor:
     ansible-playbook -i inventory/hypervisors playbooks/hypervisor/setup.yml --limit {{hypervisor}}
 
-setup-kubernetes-node:
-    ansible-playbook -i inventory/kubernetes playbooks/kubernetes/node-setup.yml
+setup-kubernetes-node cluster:
+    ansible-playbook -i inventory/kubernetes-{{cluster}} playbooks/kubernetes/node-setup.yml
 
 prepare-host inventory host:
     ansible-playbook -i inventory/{{inventory}} playbooks/prepare.yml --limit {{host}}

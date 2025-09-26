@@ -46,7 +46,6 @@
     state: present
   with_items:
     - containernetworking-plugins
-    - containerd
     - kubernetes1.34
     - kubernetes1.34-client
     - kubernetes1.34-kubeadm
@@ -63,13 +62,6 @@
     dest: /opt/cni/bin
     state: link
     force: true
-
-- name: Enable and start containerd
-  ansible.builtin.systemd:
-    name: containerd
-    enabled: true
-    state: started
-    daemon_reload: true
 
 - name: Enable and start kubelet
   ansible.builtin.systemd:

@@ -1,0 +1,4 @@
+[control_plane]
+vm-102.102.cofront.xyz ansible_user=fedora
+
+[worker]
