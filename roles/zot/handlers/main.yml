@@ -1,0 +1,10 @@
+---
+
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart zot
+  ansible.builtin.systemd:
+    name: zot
+    state: restarted

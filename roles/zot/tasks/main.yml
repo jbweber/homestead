@@ -1,0 +1,68 @@
+---
+
+- name: Create zot user
+  ansible.builtin.user:
+    name: zot
+    system: true
+    shell: /bin/false
+    home: /var/lib/zot
+    create_home: false
+
+- name: Create zot directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: zot
+    group: zot
+    mode: '0755'
+  loop:
+    - /var/lib/zot
+    - /var/lib/registry
+    - /var/lib/registry/index.docker.io
+    - /var/lib/registry/quay.io
+    - /var/lib/registry/gcr.io
+    - /var/lib/registry/registry.k8s.io
+    - /var/lib/registry/ghcr.io
+    - /etc/zot
+
+- name: Download zot binary with checksum verification
+  ansible.builtin.get_url:
+    url: "https://github.com/project-zot/zot/releases/download/v{{ version }}/{{ binary_name }}"
+    dest: "{{ dest_path }}/{{ final_name }}"
+    mode: '0755'
+    owner: root
+    group: root
+    checksum: "sha256:https://github.com/project-zot/zot/releases/download/v{{ version }}/checksums.sha256.txt"
+    backup: true
+  vars:
+    version: "2.1.8"
+    binary_name: "zot-linux-amd64"
+    final_name: "zot"
+    dest_path: "/usr/local/bin"
+
+- name: Deploy zot configuration
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/zot/config.yaml
+    owner: zot
+    group: zot
+    mode: '0644'
+  notify: restart zot
+
+- name: Deploy zot systemd unit file
+  ansible.builtin.template:
+    src: zot.service.j2
+    dest: /etc/systemd/system/zot.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - reload systemd
+    - restart zot
+
+- name: Start and enable zot service
+  ansible.builtin.systemd:
+    name: zot
+    state: started
+    enabled: true
+    daemon_reload: true

@@ -1,0 +1,29 @@
+[Unit]
+Description=Zot OCI Registry
+Documentation=https://zotregistry.io
+After=network.target
+
+[Service]
+Type=simple
+User=zot
+Group=zot
+ExecStart=/usr/local/bin/zot serve /etc/zot/config.yaml
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zot
+
+# Security settings
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/registry /var/lib/zot
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+[Install]
+WantedBy=multi-user.target
