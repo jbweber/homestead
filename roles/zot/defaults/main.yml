@@ -1,0 +1,45 @@
+---
+# Zot version and binary configuration
+zot_version: "2.1.8"
+zot_binary_name: "zot-linux-amd64"
+zot_binary_dest: "/usr/local/bin"
+zot_binary_final_name: "zot"
+
+# Zot service configuration
+zot_port: 5000
+zot_bind_address: "0.0.0.0"
+zot_log_level: "info"
+
+# Zot directories
+zot_data_dir: "/var/lib/registry"
+zot_config_dir: "/etc/zot"
+zot_home_dir: "/var/lib/zot"
+
+# Storage configuration
+zot_dedupe: true
+zot_gc: true
+zot_gc_delay: "1h"
+zot_gc_interval: "24h"
+
+# Extension configuration
+zot_search_enabled: true
+zot_scrub_enabled: true
+zot_scrub_interval: "24h"
+
+# Registry configuration for pull-through proxy
+zot_registries:
+  - name: "index.docker.io"
+    url: "https://index.docker.io"
+    path: "/index.docker.io"
+  - name: "quay.io"
+    url: "https://quay.io"
+    path: "/quay.io"
+  - name: "gcr.io"
+    url: "https://gcr.io"
+    path: "/gcr.io"
+  - name: "registry.k8s.io"
+    url: "https://registry.k8s.io"
+    path: "/registry.k8s.io"
+  - name: "ghcr.io"
+    url: "https://ghcr.io"
+    path: "/ghcr.io"

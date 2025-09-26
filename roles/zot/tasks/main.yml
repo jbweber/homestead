@@ -5,10 +5,10 @@
     name: zot
     system: true
     shell: /bin/false
-    home: /var/lib/zot
+    home: "{{ zot_home_dir }}"
     create_home: false
 
-- name: Create zot directories
+- name: Create base zot directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -16,34 +16,33 @@
     group: zot
     mode: '0755'
   loop:
-    - /var/lib/zot
-    - /var/lib/registry
-    - /var/lib/registry/index.docker.io
-    - /var/lib/registry/quay.io
-    - /var/lib/registry/gcr.io
-    - /var/lib/registry/registry.k8s.io
-    - /var/lib/registry/ghcr.io
-    - /etc/zot
+    - "{{ zot_home_dir }}"
+    - "{{ zot_data_dir }}"
+    - "{{ zot_config_dir }}"
+
+- name: Create registry subdirectories
+  ansible.builtin.file:
+    path: "{{ zot_data_dir }}{{ item.path }}"
+    state: directory
+    owner: zot
+    group: zot
+    mode: '0755'
+  loop: "{{ zot_registries }}"
 
 - name: Download zot binary with checksum verification
   ansible.builtin.get_url:
-    url: "https://github.com/project-zot/zot/releases/download/v{{ version }}/{{ binary_name }}"
-    dest: "{{ dest_path }}/{{ final_name }}"
+    url: "https://github.com/project-zot/zot/releases/download/v{{ zot_version }}/{{ zot_binary_name }}"
+    dest: "{{ zot_binary_dest }}/{{ zot_binary_final_name }}"
     mode: '0755'
     owner: root
     group: root
-    checksum: "sha256:https://github.com/project-zot/zot/releases/download/v{{ version }}/checksums.sha256.txt"
+    checksum: "sha256:https://github.com/project-zot/zot/releases/download/v{{ zot_version }}/checksums.sha256.txt"
     backup: true
-  vars:
-    version: "2.1.8"
-    binary_name: "zot-linux-amd64"
-    final_name: "zot"
-    dest_path: "/usr/local/bin"
 
 - name: Deploy zot configuration
   ansible.builtin.template:
     src: config.yaml.j2
-    dest: /etc/zot/config.yaml
+    dest: "{{ zot_config_dir }}/config.yaml"
     owner: zot
     group: zot
     mode: '0644'

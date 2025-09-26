@@ -1,74 +1,38 @@
 storage:
-  rootDirectory: /var/lib/registry
-  dedupe: true
-  gc: true
-  gcDelay: 1h
-  gcInterval: 24h
+  rootDirectory: {{ zot_data_dir }}
+  dedupe: {{ zot_dedupe | lower }}
+  gc: {{ zot_gc | lower }}
+  gcDelay: {{ zot_gc_delay }}
+  gcInterval: {{ zot_gc_interval }}
   subPaths:
-    /index.docker.io:
-      rootDirectory: /var/lib/registry/index.docker.io
+{% for registry in zot_registries %}
+    {{ registry.path }}:
+      rootDirectory: {{ zot_data_dir }}{{ registry.path }}
       dedupe: false
-    /quay.io:
-      rootDirectory: /var/lib/registry/quay.io
-      dedupe: false
-    /gcr.io:
-      rootDirectory: /var/lib/registry/gcr.io
-      dedupe: false
-    /registry.k8s.io:
-      rootDirectory: /var/lib/registry/registry.k8s.io
-      dedupe: false
-    /ghcr.io:
-      rootDirectory: /var/lib/registry/ghcr.io
-      dedupe: false
+{% endfor %}
 
 http:
-  address: 0.0.0.0
-  port: 5000
+  address: {{ zot_bind_address }}
+  port: {{ zot_port }}
 
 log:
-  level: info
+  level: {{ zot_log_level }}
 
 extensions:
   sync:
     enable: true
     registries:
+{% for registry in zot_registries %}
       - urls:
-          - https://index.docker.io
+          - {{ registry.url }}
         onDemand: true
         tlsVerify: true
         content:
           - prefix: "**"
-            destination: "/index.docker.io"
-      - urls:
-          - https://quay.io
-        onDemand: true
-        tlsVerify: true
-        content:
-          - prefix: "**"
-            destination: "/quay.io"
-      - urls:
-          - https://gcr.io
-        onDemand: true
-        tlsVerify: true
-        content:
-          - prefix: "**"
-            destination: "/gcr.io"
-      - urls:
-          - https://registry.k8s.io
-        onDemand: true
-        tlsVerify: true
-        content:
-          - prefix: "**"
-            destination: "/registry.k8s.io"
-      - urls:
-          - https://ghcr.io
-        onDemand: true
-        tlsVerify: true
-        content:
-          - prefix: "**"
-            destination: "/ghcr.io"
+            destination: "{{ registry.path }}"
+{% endfor %}
   search:
-    enable: true
+    enable: {{ zot_search_enabled | lower }}
   scrub:
-    enable: true
-    interval: 24h
+    enable: {{ zot_scrub_enabled | lower }}
+    interval: {{ zot_scrub_interval }}
