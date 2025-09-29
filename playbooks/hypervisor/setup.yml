@@ -14,5 +14,4 @@
       become: true
     - role: vm-image-download
       become: true
-    - role: zot
-      become: true
+

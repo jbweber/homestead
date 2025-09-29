@@ -1,5 +1,5 @@
 # Registry mirror configuration for {{ registry_name }}
 server = "{{ registry_server }}"
 
-[host."http://{{ mirror_host }}"]
-capabilities = ["pull"]
+[host."{{ registry_mirror }}"]
+capabilities = ["pull", "resolve"]

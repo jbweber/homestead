@@ -5,46 +5,46 @@
     name: containerd
     state: present
 
-# - name: Create containerd certs.d directory
-#   ansible.builtin.file:
-#     path: "{{ containerd_config_dir }}/certs.d"
-#     state: directory
-#     owner: root
-#     group: root
-#     mode: '0755'
+- name: Create containerd certs.d directory
+  ansible.builtin.file:
+    path: "{{ containerd_config_dir }}/certs.d"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
 
-# - name: Create registry directories
-#   ansible.builtin.file:
-#     path: "{{ containerd_config_dir }}/certs.d/{{ item.registry }}"
-#     state: directory
-#     owner: root
-#     group: root
-#     mode: '0755'
-#   loop: "{{ containerd_registry_mirrors }}"
+- name: Create registry directories
+  ansible.builtin.file:
+    path: "{{ containerd_config_dir }}/certs.d/{{ item.registry_name }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ containerd_registry_mirrors }}"
 
-# - name: Deploy registry hosts.toml files
-#   ansible.builtin.template:
-#     src: hosts.toml.j2
-#     dest: "{{ containerd_config_dir }}/certs.d/{{ item.registry }}/hosts.toml"
-#     owner: root
-#     group: root
-#     mode: '0644'
-#   loop: "{{ containerd_registry_mirrors }}"
-#   vars:
-#     registry_name: "{{ item.registry }}"
-#     registry_server: "https://{{ item.registry }}"
-#     mirror_host: "{{ item.mirrors[0] }}"
-#   notify: Restart containerd
+- name: Deploy registry hosts.toml files
+  ansible.builtin.template:
+    src: hosts.toml.j2
+    dest: "{{ containerd_config_dir }}/certs.d/{{ item.registry_name }}/hosts.toml"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ containerd_registry_mirrors }}"
+  vars:
+    registry_name: "{{ item.registry_name }}"
+    registry_server: "{{ item.registry_server }}"
+    registry_mirror: "{{ item.registry_mirror }}"
+  notify: Restart containerd
 
-# - name: Deploy containerd configuration
-#   ansible.builtin.template:
-#     src: config.toml.j2
-#     dest: "{{ containerd_config_dir }}/config.toml"
-#     owner: root
-#     group: root
-#     mode: '0644'
-#     backup: true
-#   notify: Restart containerd
+- name: Deploy containerd configuration
+  ansible.builtin.template:
+    src: config.toml.j2
+    dest: "{{ containerd_config_dir }}/config.toml"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  notify: Restart containerd
 
 - name: Start and enable containerd service
   ansible.builtin.systemd:

@@ -9,18 +9,6 @@ containerd_sandbox_image: "registry.k8s.io/pause:3.10"
 
 # Registry mirrors configuration
 containerd_registry_mirrors:
-  - registry: "index.docker.io"
-    mirrors:
-      - "gravity.fe.cofront.xyz:5000/index.docker.io"
-  - registry: "quay.io"
-    mirrors:
-      - "gravity.fe.cofront.xyz:5000/quay.io"
-  - registry: "gcr.io"
-    mirrors:
-      - "gravity.fe.cofront.xyz:5000/gcr.io"
-  - registry: "registry.k8s.io"
-    mirrors:
-      - "gravity.fe.cofront.xyz:5000/registry.k8s.io"
-  - registry: "ghcr.io"
-    mirrors:
-      - "gravity.fe.cofront.xyz:5000/ghcr.io"
+  - registry_name: "docker.io"
+    registry_server: "https://registry-1.docker.io"
+    registry_mirror: "https://gravity.fe.cofront.xyz"
