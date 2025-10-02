@@ -46,6 +46,7 @@
     state: present
   with_items:
     - containernetworking-plugins
+    - helm
     - kubernetes1.34
     - kubernetes1.34-client
     - kubernetes1.34-kubeadm
