@@ -1,25 +1,15 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: vm-bridge-only-static
+  name: vm-01
   namespace: default
 spec:
-  running: true
+  runStrategy: Always
   template:
     metadata:
-      annotations:
-        k8s.v1.cni.cncf.io/networks: '[
-          {
-            "name": "vm1-bridge-static",
-            "mac": "02:00:00:0b:01:02",
-            "ips": ["10.254.254.75/24"]
-          }
-        ]'
       labels:
-        kubevirt.io/vm: vm-bridge-only-static
+        kubevirt.io/vm: vm-01
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: super.fe.cofront.xyz
       domain:
         devices:
           disks:
@@ -30,20 +20,18 @@ spec:
               bus: virtio
             name: cloudinitdisk
           interfaces:
-          - name: bridge-interface
+          - name: default
             bridge: {}
-            macAddress: "02:00:00:0b:01:02"
           rng: {}
         machine:
           type: q35
         resources:
           requests:
-            memory: 1Gi
-            cpu: 1
+            memory: 4Gi
+            cpu: 2
       networks:
-      - name: bridge-interface
-        multus:
-          networkName: vm1-bridge-static
+      - name: default
+        pod: {}
       terminationGracePeriodSeconds: 0
       volumes:
       - name: containerdisk
@@ -56,19 +44,6 @@ spec:
             password: fedora
             chpasswd: { expire: False }
             ssh_pwauth: True
-            hostname: vm-bridge-only-static
-          networkData: |
-            version: 2
-            ethernets:
-              primary:
-                match:
-                  macaddress: "02:00:00:0b:01:02"
-                addresses:
-                  - 10.254.254.75/24
-                gateway4: 10.254.254.1
-                nameservers:
-                  addresses:
-                    - 10.254.254.1
-                    - 8.8.8.8
-                  search:
-                    - localdomain
+            hostname: test-vm
+            ssh_authorized_keys:
+              - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA3MsS8Dqgi1uU/CgStslfjrwR19DZgwZP8W+uDEuNQg jweber@hellhound
