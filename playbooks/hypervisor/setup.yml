@@ -4,11 +4,13 @@
   roles:
     - role: systemd-networkd
       become: true
+    - role: hypervisor-prepare
+      become: true
     - role: libvirt
       become: true
-    - role: frr
+    - role: bird
       become: true
-      when: frr_bgp_asn is defined
+      when: bird_bgp_local_asn is defined
 #    - role: nocloud-metadata
 #      vars:
 #        nocloud_metadata_machines: "{{ hypervisor_config.machines }}"

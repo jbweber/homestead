@@ -1,0 +1,44 @@
+---
+
+- name: Ensure sysctl set
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+  with_items:
+    - net.ipv4.ip_forward
+
+- name: Ensure zram is stopped
+  ansible.builtin.systemd:
+    name: systemd-zram-setup@zram0
+    state: stopped
+
+- name: Ensure zram is disabled
+  ansible.builtin.file:
+    path: /etc/systemd/zram-generator.conf
+    access_time: preserve
+    modification_time: preserve
+    state: touch
+    mode: '0644'
+
+- name: Check if firewalld service exists
+  ansible.builtin.stat:
+    path: /usr/lib/systemd/system/firewalld.service
+  register: firewalld_service
+
+- name: Check firewalld status
+  ansible.builtin.systemd:
+    name: firewalld
+  register: firewalld_status
+  when: firewalld_service.stat.exists
+  ignore_errors: true
+
+- name: Disable and stop firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: stopped
+    enabled: false
+    daemon_reload: true
+  when:
+    - firewalld_service.stat.exists
+    - firewalld_status.status is defined

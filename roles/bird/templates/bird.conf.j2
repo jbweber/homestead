@@ -1,0 +1,136 @@
+# {{ ansible_managed }}
+# BIRD configuration for VM /32 route announcement via eBGP
+#
+# Purpose: Dynamically announce VM host routes (/32) via BGP
+# How it works:
+#   1. Watches kernel routing table for /32 routes on vm* interfaces
+#   2. Filters to only match interfaces named vm + 8 hex chars (e.g., vm0a371616)
+#   3. Excludes the link-local gateway (169.254.0.1) from announcement
+#   4. Announces matched routes to BGP peer, denies all inbound routes
+
+# ============================================================================
+# GLOBAL CONFIGURATION
+# ============================================================================
+
+# Router ID - uniquely identifies this BGP speaker
+router id {{ bird_bgp_router_id }};
+
+# Logging configuration
+log syslog all;              # Send all logs to syslog
+{% if bird_debug_protocols %}
+debug protocols all;         # Enable protocol debugging
+{% endif %}
+
+# ============================================================================
+# KERNEL PROTOCOL - Interface with Linux kernel routing table
+# ============================================================================
+# This protocol imports routes from the Linux kernel routing table into BIRD
+# and can export BIRD routes back to the kernel (we don't do this)
+
+protocol kernel {
+    ipv4 {
+        # IMPORT: Learn all routes from kernel
+        # We'll filter at BGP export time instead
+        import all;
+
+        # EXPORT FILTER: Don't push BIRD routes back to kernel
+        export none;
+    };
+
+    # Enable learning of "alien routes" from kernel (routes not added by BIRD)
+    # This is required to import routes added by libvirt hooks or manually
+    learn;
+
+    # How often to scan the kernel routing table for changes
+    scan time 2;  # Check every 2 seconds
+}
+
+# ============================================================================
+# DEVICE PROTOCOL - Learn about network interfaces
+# ============================================================================
+# This protocol monitors network interfaces (up/down status, addresses, etc.)
+# Required for BIRD to know about interface state changes
+
+protocol device {
+    scan time 10;  # Check for interface changes every 10 seconds
+}
+
+# ============================================================================
+# DIRECT PROTOCOL - Learn about directly connected networks
+# ============================================================================
+# This protocol imports routes for directly connected networks
+# We limit it to only watch vm* interfaces
+
+protocol direct {
+    ipv4;
+    interface "{{ bird_vm_interface_pattern }}";  # Only watch vm* interfaces
+}
+
+# ============================================================================
+# BGP PROTOCOL - Peer with upstream router
+# ============================================================================
+# This is the main BGP peering session that announces VM routes
+
+protocol bgp upstream {
+    description "eBGP peer for VM route announcement";
+
+    # BGP session parameters
+    local as {{ bird_bgp_local_asn }};                            # Our ASN
+    neighbor {{ bird_bgp_neighbor_ip }} as {{ bird_bgp_neighbor_asn }};  # Peer IP and ASN
+
+{% if bird_bgp_multihop %}
+    # Enable multihop for non-directly-connected eBGP peers
+    # This allows BGP peering across multiple network hops
+    multihop;
+{% endif %}
+
+    ipv4 {
+        # IMPORT POLICY: What routes do we accept from the peer?
+        # Answer: NONE - we deny all inbound routes
+        import none;
+
+        # EXPORT POLICY: What routes do we announce to the peer?
+        export filter {
+            # Filter routes based on:
+            #   1. Must be /32 (host route)
+            #   2. Must be on a vm* interface (vm + 8 hex chars)
+            #   3. Must NOT be the link-local gateway (169.254.0.1)
+            #   4. Source must be from kernel or direct protocol
+
+            if net.len = 32 &&
+               ifname ~ "{{ bird_vm_interface_pattern }}" &&
+               net != {{ bird_linklocal_gateway }} &&
+               (source = RTS_DEVICE || source = RTS_STATIC || proto = "kernel1") then {
+                accept;  # Announce this route to BGP peer
+            }
+            reject;  # Don't announce anything else
+        };
+    };
+}
+
+# ============================================================================
+# OPERATIONAL NOTES
+# ============================================================================
+#
+# To verify operation:
+#   birdc show route                      # Show all routes BIRD knows
+#   birdc show route export upstream      # Show routes being exported to peer
+#   birdc show protocols all upstream     # Show BGP session details
+#
+# To reload config:
+#   birdc configure
+#
+# VM Interface Naming:
+#   Format: vm + 8 hex chars representing the IP address
+#   Example: 10.55.22.22 = 0x0a371616 = vm0a371616
+#   Length: 10 characters (within 15 char Linux interface limit)
+#
+# Route Flow:
+#   1. VM starts → libvirt creates vm0a371616 interface
+#   2. Hook script adds: ip route add 10.55.22.22/32 dev vm0a371616
+#   3. Hook script adds: ip addr add 169.254.0.1/32 dev vm0a371616
+#   4. BIRD kernel protocol sees 10.55.22.22/32 route
+#   5. Import filter accepts it (matches pattern, is /32, not 169.254.0.1)
+#   6. BGP export filter accepts it (source is RTS_DEVICE)
+#   7. Route announced to upstream peer
+# ============================================================================

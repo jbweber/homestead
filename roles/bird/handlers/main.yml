@@ -1,0 +1,11 @@
+---
+
+- name: Reload bird
+  ansible.builtin.systemd:
+    name: bird
+    state: reloaded
+
+- name: Restart bird
+  ansible.builtin.systemd:
+    name: bird
+    state: restarted

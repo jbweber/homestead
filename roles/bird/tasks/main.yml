@@ -1,0 +1,26 @@
+---
+
+- name: Install BIRD package
+  ansible.builtin.dnf:
+    name: bird
+    state: present
+
+- name: Configure BIRD
+  ansible.builtin.template:
+    src: bird.conf.j2
+    dest: /etc/bird.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload bird
+
+- name: Validate BIRD configuration
+  ansible.builtin.command: bird -p -c /etc/bird.conf
+  changed_when: false
+  register: bird_validate
+
+- name: Enable and start BIRD service
+  ansible.builtin.systemd:
+    name: bird
+    state: started
+    enabled: true

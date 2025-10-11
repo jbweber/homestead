@@ -1,0 +1,26 @@
+---
+# BIRD BGP configuration for VM route announcement
+
+# Local ASN
+bird_bgp_local_asn: 65000
+
+# Router ID (defaults to ansible default IPv4 address)
+bird_bgp_router_id: "{{ ansible_default_ipv4.address }}"
+
+# BGP neighbor configuration
+bird_bgp_neighbor_ip: ""
+bird_bgp_neighbor_asn: 65001
+
+# eBGP multihop (boolean)
+bird_bgp_multihop: true
+
+# VM interface pattern for route matching
+# Pattern: vm + 8 hex characters (IP in hex)
+# Example: vm0a371616 for 10.55.22.22
+bird_vm_interface_pattern: "vm????????"
+
+# Link-local gateway IP to exclude from announcements
+bird_linklocal_gateway: "169.254.0.1/32"
+
+# Debug mode (enables verbose protocol debugging in logs)
+bird_debug_protocols: false
