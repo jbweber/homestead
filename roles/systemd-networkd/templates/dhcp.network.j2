@@ -7,6 +7,5 @@ Name={{ item.interface_name }}
 DHCP=yes
 
 [DHCPv4]
-UseDns=yes
-UseRoutes=yes
-UseHostname=no
+Hostname={{ inventory_hostname }}
+Sendhostname=yes
