@@ -1,0 +1,40 @@
+---
+# FRR daemon configuration
+frr_daemons:
+  bgpd: true
+  ospfd: false
+  ospf6d: false
+  ripd: false
+  ripngd: false
+  isisd: false
+  pimd: false
+  pim6d: false
+  nhrpd: false
+  eigrpd: false
+  sharpd: false
+  pbrd: false
+  bfdd: false
+  fabricd: false
+  vrrpd: false
+  pathd: false
+
+# BGP configuration
+frr_bgp_enable: true
+frr_bgp_asn: 65000
+frr_bgp_router_id: "{{ ansible_default_ipv4.address }}"
+
+# BGP neighbors
+frr_bgp_neighbors: []
+# Example:
+# - ip: 192.168.1.1
+#   remote_as: 65001
+#   description: "Peer router 1"
+
+# BGP networks to announce
+frr_bgp_networks: []
+# Example:
+# - prefix: 10.0.0.0/24
+# - prefix: 10.0.1.0/24
+
+# Additional FRR configuration lines
+frr_additional_config: []

@@ -1,5 +1,46 @@
 ---
 
+# FRR BGP Configuration
+frr_bgp_asn: 65009
+frr_bgp_redistribute_kernel: true
+frr_bgp_redistribute_kernel_route_map: "KERNEL-TO-BGP"
+frr_bgp_neighbors:
+  - ip: 192.168.254.1
+    remote_as: 65001
+    description: "eBGP peer"
+    ebgp_multihop: true
+    route_map_in: "DENY-ALL"
+    route_map_out: "EXPORT-VNET"
+
+frr_additional_config:
+  - "!"
+  - "! Deny all inbound routes"
+  - "route-map DENY-ALL deny 10"
+  - "!"
+  - "! Prefix-list to match only /32 routes (except link-local gateway)"
+  - "! IMPORTANT: deny must come before permit in prefix-lists"
+  - "ip prefix-list HOST-ROUTES seq 5 deny 169.254.0.1/32"
+  - "ip prefix-list HOST-ROUTES seq 10 permit 0.0.0.0/0 ge 32 le 32"
+  - "!"
+  - "! Match vm interfaces: vm + 8 hex chars (IP in hex)"
+  - "! Example: vm0a371616 for 10.55.22.22"
+  - "! Each vm interface has:"
+  - "!   - VM's public IP as /32 route to the interface"
+  - "!   - 169.254.0.1/32 assigned to interface (link-local gateway for VM)"
+  - "! Note: FRR route-map 'match interface' supports wildcards"
+  - "!"
+  - "! Filter kernel routes: only /32 routes (excludes 169.254.0.1)"
+  - "! Note: FRR match interface does not support regex patterns"
+  - "! We rely on prefix-list filtering only - ensure only vm interfaces have /32 routes"
+  - "route-map KERNEL-TO-BGP permit 10"
+  - " match ip address prefix-list HOST-ROUTES"
+  - "!"
+  - "route-map KERNEL-TO-BGP deny 20"
+  - "!"
+  - "! Export filtered routes to BGP peer"
+  - "route-map EXPORT-VNET permit 10"
+  - "!"
+
 systemd_networkd_interfaces:
   - interface_name: 'bond0'
     interface_type: 'bond'
