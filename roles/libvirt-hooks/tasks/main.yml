@@ -1,0 +1,36 @@
+---
+
+- name: Install Python dependencies for libvirt hooks
+  ansible.builtin.dnf:
+    name:
+      - python3-pyroute2
+      - python3-lxml
+      - python3-json-logger
+    state: present
+
+- name: Create libvirt hooks directory
+  ansible.builtin.file:
+    path: /etc/libvirt/hooks
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Install qemu hook script
+  ansible.builtin.copy:
+    src: qemu
+    dest: /etc/libvirt/hooks/qemu
+    owner: root
+    group: root
+    mode: '0755'
+  notify: Restart libvirtd
+
+- name: Create log file for libvirt hooks
+  ansible.builtin.file:
+    path: /var/log/libvirt_hook_qemu.log
+    state: touch
+    owner: root
+    group: root
+    mode: '0644'
+    modification_time: preserve
+    access_time: preserve

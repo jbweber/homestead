@@ -1,0 +1,23 @@
+#cloud-config
+hostname: {{ libvirt_create_bgp_machine.name }}
+fqdn: {{ libvirt_create_bgp_machine.fqdn | default(libvirt_create_bgp_machine.name) }}
+
+{% if libvirt_create_bgp_machine.ssh_keys is defined and libvirt_create_bgp_machine.ssh_keys | length > 0 %}
+ssh_authorized_keys:
+{% for key in libvirt_create_bgp_machine.ssh_keys %}
+  - {{ key }}
+{% endfor %}
+{% endif %}
+
+{% if libvirt_create_bgp_machine.root_password_hash is defined %}
+chpasswd:
+  expire: false
+  list:
+    - root:{{ libvirt_create_bgp_machine.root_password_hash }}
+{% endif %}
+
+# Disable password authentication unless explicitly enabled
+ssh_pwauth: {{ libvirt_create_bgp_machine.ssh_pwauth | default(false) }}
+
+# Preserve cloud-init logs for debugging
+output: {all: '| tee -a /var/log/cloud-init-output.log'}

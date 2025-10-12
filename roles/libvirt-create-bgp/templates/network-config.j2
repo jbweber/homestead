@@ -1,0 +1,23 @@
+version: 2
+ethernets:
+  eth0:
+    match:
+      macaddress: "{{ libvirt_create_bgp_mac }}"
+    addresses:
+      - {{ libvirt_create_bgp_machine.ip }}/32
+    routes:
+      - to: 0.0.0.0/0
+        via: {{ libvirt_create_bgp_machine.gateway | default('169.254.0.1') }}
+        on-link: true
+{% if libvirt_create_bgp_machine.dns_servers is defined and libvirt_create_bgp_machine.dns_servers | length > 0 %}
+    nameservers:
+      addresses:
+{% for dns in libvirt_create_bgp_machine.dns_servers %}
+        - {{ dns }}
+{% endfor %}
+{% else %}
+    nameservers:
+      addresses:
+        - 8.8.8.8
+        - 1.1.1.1
+{% endif %}

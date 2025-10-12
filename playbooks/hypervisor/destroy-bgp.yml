@@ -1,0 +1,29 @@
+---
+- name: Destroy BGP-routed libvirt machine
+  hosts: hypervisor
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Fail if more than one host is targeted
+      ansible.builtin.fail:
+        msg: "You must limit the playbook to a single host using --limit"
+      when: ansible_play_hosts | length != 1
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Fail if machine_name is not defined or empty
+      ansible.builtin.fail:
+        msg: 'please pass an appropriate machine name'
+      when: machine_name is not defined or machine_name == ''
+
+    - name: Fail if machine_name is not present for this host
+      ansible.builtin.fail:
+        msg: "machine_name '{{ machine_name }}' is not defined in hypervisor_bgp_machines for host '{{ inventory_hostname }}'"
+      when: hypervisor_bgp_machines is not defined or machine_name not in hypervisor_bgp_machines.keys() or hypervisor_bgp_machines[machine_name] is not defined
+
+    - name: Destroy BGP-routed VM
+      ansible.builtin.include_role:
+        name: libvirt-destroy-bgp
+      vars:
+        libvirt_destroy_bgp_machine: "{{ hypervisor_bgp_machines[machine_name] }}"

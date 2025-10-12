@@ -1,0 +1,212 @@
+#!/usr/bin/python3
+
+import json
+import logging
+import sys
+import time
+from lxml import etree
+from pyroute2 import IPRoute
+
+IF_PREFIX = 'vm'
+GATEWAY_IP = '169.254.0.1'
+GATEWAY_PREFIX = 32
+LOG_FILE = '/var/log/libvirt_hook_qemu.log'
+
+
+class ECSFormatter(logging.Formatter):
+    """Format logs in ECS (Elastic Common Schema) format"""
+    def format(self, record):
+        log_entry = {
+            '@timestamp': time.strftime('%Y-%m-%dT%H:%M:%S.000Z', time.gmtime(record.created)),
+            'log.level': record.levelname.lower(),
+            'message': record.getMessage(),
+            'ecs.version': '1.12.0',
+            'event.dataset': 'libvirt.hook.qemu',
+            'service.name': 'libvirt-hook',
+        }
+
+        # Add extra fields
+        if hasattr(record, 'extra'):
+            for key, value in record.extra.items():
+                log_entry[key] = value
+
+        # Add exception info if present
+        if record.exc_info:
+            log_entry['error.message'] = self.formatException(record.exc_info)
+            log_entry['error.type'] = record.exc_info[0].__name__ if record.exc_info[0] else None
+
+        return json.dumps(log_entry)
+
+
+logger = logging.getLogger('libvirt_hooks.qemu')
+logger.setLevel(logging.DEBUG)
+
+fh = logging.FileHandler(filename=LOG_FILE)
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(ECSFormatter())
+logger.addHandler(fh)
+
+
+def ifname_to_ip(ifname):
+    """Convert vm0a371616 to 10.55.22.22"""
+    if not ifname.startswith(IF_PREFIX):
+        return None
+
+    hex_ip = ifname[len(IF_PREFIX):]
+    if len(hex_ip) != 8:
+        return None
+
+    try:
+        octets = [int(hex_ip[i:i+2], 16) for i in range(0, 8, 2)]
+        return '.'.join(map(str, octets))
+    except ValueError:
+        return None
+
+
+def configure_interface(interface):
+    """Add route and gateway IP to interface"""
+    ip = IPRoute()
+    try:
+        vm_ip = ifname_to_ip(interface)
+        if not vm_ip:
+            logger.warning('could not parse IP from interface name', extra={'extra': {'interface': interface}})
+            return
+
+        # Get interface index
+        idx_list = ip.link_lookup(ifname=interface)
+        if not idx_list:
+            logger.error('interface not found', extra={'extra': {'interface': interface}})
+            return
+
+        idx = idx_list[0]
+
+        # Add gateway IP to interface
+        ip.addr('add', index=idx, address=GATEWAY_IP, prefixlen=GATEWAY_PREFIX)
+
+        # Add /32 route for VM IP (scope=link is 253)
+        ip.route('replace', dst=f'{vm_ip}/32', oif=idx, scope=253)
+
+        logger.info('configured interface', extra={'extra': {
+            'interface': interface,
+            'vm_ip': vm_ip,
+            'gateway': f'{GATEWAY_IP}/{GATEWAY_PREFIX}',
+            'event.action': 'interface-configured'
+        }})
+    except Exception as e:
+        logger.exception('error configuring interface', extra={'extra': {'interface': interface, 'error': str(e), 'event.action': 'interface-config-failed'}})
+    finally:
+        ip.close()
+
+
+def cleanup_interface(interface):
+    """Remove route from interface before it's destroyed"""
+    ip = IPRoute()
+    try:
+        vm_ip = ifname_to_ip(interface)
+        if not vm_ip:
+            logger.warning('could not parse IP from interface name', extra={'extra': {'interface': interface}})
+            return
+
+        # Try to remove route - interface may still exist at this point
+        try:
+            idx_list = ip.link_lookup(ifname=interface)
+            if idx_list:
+                idx = idx_list[0]
+                ip.route('del', dst=f'{vm_ip}/32', oif=idx)
+                logger.info('cleaned up route', extra={'extra': {
+                    'interface': interface,
+                    'vm_ip': vm_ip,
+                    'event.action': 'route-removed'
+                }})
+            else:
+                logger.info('interface already gone, skipping cleanup', extra={'extra': {
+                    'interface': interface,
+                    'vm_ip': vm_ip,
+                    'event.action': 'cleanup-skipped'
+                }})
+        except Exception as route_err:
+            # Route or interface might already be gone, that's okay
+            logger.info('cleanup not needed', extra={'extra': {
+                'interface': interface,
+                'vm_ip': vm_ip,
+                'reason': str(route_err),
+                'event.action': 'cleanup-not-needed'
+            }})
+    except Exception as e:
+        logger.exception('error during cleanup', extra={'extra': {'interface': interface, 'error': str(e), 'event.action': 'cleanup-failed'}})
+    finally:
+        ip.close()
+
+
+def get_vm_interfaces(domain):
+    """Extract vm* interfaces from domain XML"""
+    interfaces = []
+    for iface in domain.findall('devices/interface'):
+        target = iface.find('target')
+        if target is not None:
+            dev = target.attrib.get('dev', '')
+            if dev.startswith(IF_PREFIX):
+                interfaces.append(dev)
+    return interfaces
+
+
+def get_vm_name(domain):
+    """Extract VM name from domain XML"""
+    name_elem = domain.find('name')
+    if name_elem is not None:
+        return name_elem.text
+    return 'unknown'
+
+
+def main():
+    if len(sys.argv) < 4:
+        logger.error('insufficient arguments', extra={'extra': {'args': sys.argv}})
+        return
+
+    target, op, sub_op = sys.argv[1:4]
+
+    logger.info('hook invoked', extra={'extra': {
+        'vm.name': target,
+        'event.type': op,
+        'event.category': sub_op,
+        'event.action': f'{op}-{sub_op}'
+    }})
+
+    # Configure on started/begin (after libvirt creates tap)
+    if op == 'started' and sub_op == 'begin':
+        domain_xml = sys.stdin.read()
+        domain = etree.fromstring(domain_xml)
+        vm_name = get_vm_name(domain)
+        interfaces = get_vm_interfaces(domain)
+
+        logger.info('configuring VM interfaces', extra={'extra': {
+            'vm.name': vm_name,
+            'network.name': interfaces,
+            'event.action': 'configure-interfaces'
+        }})
+
+        for interface in interfaces:
+            configure_interface(interface)
+
+    # Cleanup on release/end (when VM is being released, before interface destruction)
+    elif op == 'release' and sub_op == 'end':
+        domain_xml = sys.stdin.read()
+        domain = etree.fromstring(domain_xml)
+        vm_name = get_vm_name(domain)
+        interfaces = get_vm_interfaces(domain)
+
+        logger.info('cleaning up VM interfaces', extra={'extra': {
+            'vm.name': vm_name,
+            'network.name': interfaces,
+            'event.action': 'cleanup-interfaces'
+        }})
+
+        for interface in interfaces:
+            cleanup_interface(interface)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception:
+        logger.exception("fatal hook error")
