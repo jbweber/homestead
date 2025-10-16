@@ -2,7 +2,7 @@
 - name: Hypervisor Setup
   hosts: hypervisor
   roles:
-    - role: systemd-networkd
+    - role: systemd_networkd
       become: true
 #    - role: hypervisor_prepare
 #      become: true

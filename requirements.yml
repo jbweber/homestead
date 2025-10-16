@@ -6,11 +6,23 @@ collections:
     version: "2.0.0"
 
 roles:
+  - name: containerd
+    src: https://github.com/jbweber/ansible-role-containerd.git
+    version: main
+
   - name: kubernetes_prepare
     src: https://github.com/jbweber/ansible-role-kubernetes-prepare.git
     version: main
 
   - name: hypervisor_prepare
     src: https://github.com/jbweber/ansible-role-hypervisor-prepare.git
+    version: main
+
+  - name: system_prepare
+    src: https://github.com/jbweber/ansible-role-system-prepare.git
+    version: main
+
+  - name: systemd_networkd
+    src: https://github.com/jbweber/ansible-role-systemd-networkd.git
     version: main
 

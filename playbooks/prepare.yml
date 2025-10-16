@@ -10,7 +10,7 @@
       when: ansible_play_hosts | length != 1
     - name: Run prepare role
       ansible.builtin.include_role:
-        name: system-prepare
+        name: system_prepare
     - name: Reboot server
       ansible.builtin.reboot:
         msg: "Reboot initiated by Ansible"

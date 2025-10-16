@@ -4,6 +4,6 @@
   become: true
   gather_facts: true
   roles:
-    - role: systemd-networkd
+    - role: systemd_networkd
     - role: kubernetes_prepare
     - role: containerd
