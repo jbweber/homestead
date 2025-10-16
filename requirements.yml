@@ -1,5 +1,16 @@
 ---
 collections:
   - name: community.general
+    version: "11.4.0"
   - name: community.libvirt
-  
+    version: "2.0.0"
+
+roles:
+  - name: kubernetes_prepare
+    src: https://github.com/jbweber/ansible-role-kubernetes-prepare.git
+    version: main
+
+  - name: hypervisor_prepare
+    src: https://github.com/jbweber/ansible-role-hypervisor-prepare.git
+    version: main
+

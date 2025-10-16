@@ -4,18 +4,18 @@
   roles:
     - role: systemd-networkd
       become: true
-    - role: hypervisor-prepare
-      become: true
-    - role: libvirt
-      become: true
-    - role: bird
-      become: true
-      when: bird_bgp_local_asn is defined
+#    - role: hypervisor_prepare
+#      become: true
+#    - role: libvirt
+#      become: true
+#    - role: bird
+#      become: true
+#      when: bird_bgp_local_asn is defined
 #    - role: nocloud-metadata
 #      vars:
 #        nocloud_metadata_machines: "{{ hypervisor_config.machines }}"
 #        nocloud_metadata_networks: "{{ hypervisor_config.networks }}"
 #        nocloud_metadata_ssh_keys: "{{ hypervisor_ssh_keys }}"
 #      become: true
-    - role: vm-image-download
-      become: true
+#    - role: vm-image-download
+#      become: true

@@ -4,7 +4,7 @@
 # Run `just` or `just help` to see available commands.
 
 update-ansible:
-    ansible-galaxy install -r requirements.yml
+    ansible-galaxy install -r requirements.yml --force
 
 list-hypervisors:
     ansible-playbook -i inventory/hypervisors --list-hosts playbooks/hypervisor/setup.yml
