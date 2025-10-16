@@ -35,18 +35,17 @@ systemd_networkd_interfaces:
     config_type: 'network'
     order: '30'
 
-# BGP-routed VMs configuration
-hypervisor_bgp_machines:
+# VM configuration (unified format)
+hypervisor_machines:
   test-vm:
     name: 'test-vm'
-    ip: '10.55.22.22'
     fqdn: 'test-vm.cofront.xyz'
+    ip: '10.55.22.22/32'
     gateway: '169.254.0.1'
     dns_servers:
       - '8.8.8.8'
       - '1.1.1.1'
-    ssh_keys:
-      - 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPMjBrt/1ctCr/yn5MXXF5V+5MicwE+Wp3JUKdTMnbYE jweber@hellhound'
+    ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
     image_template: 'fedora-42-cloud'
     boot_disk_size_gb: 20

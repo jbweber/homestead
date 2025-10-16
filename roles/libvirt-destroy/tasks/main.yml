@@ -15,6 +15,11 @@
   when: vm_status.status is defined
   failed_when: false
 
+- name: Wait for VM to shut down
+  ansible.builtin.pause:
+    seconds: 5
+  when: vm_status.status is defined and vm_status.status == 'running'
+
 - name: Undefine the virtual machine
   community.libvirt.virt:
     name: '{{ libvirt_destroy_machine.name }}'
@@ -24,7 +29,8 @@
   when: vm_status.status is defined
   failed_when: false
 
-- name: Destroy virtual machine path
+- name: Destroy virtual machine directory
   ansible.builtin.file:
     path: "/var/lib/libvirt/images/{{ libvirt_destroy_machine.name }}"
     state: absent
+  when: vm_status.status is defined

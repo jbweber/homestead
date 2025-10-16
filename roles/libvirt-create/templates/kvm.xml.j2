@@ -1,20 +1,13 @@
 <domain type="kvm">
     <name>{{ libvirt_create_machine.name }}</name>
     <memory unit="GiB">{{ libvirt_create_machine.memory_gib }}</memory>
-    <!-- no placement uses numatune to advise -->
     <vcpu placement="static">{{ libvirt_create_machine.vcpus }}</vcpu>
     <metadata></metadata>
     <os firmware='efi'>
         <type arch="x86_64">hvm</type>
         <boot dev="hd"/>
         <bios useserial="yes"/>
-        <smbios mode='sysinfo'/>
     </os>
-    <sysinfo type="smbios">
-        <system>
-            <entry name="serial">ds=nocloud;s={{ nocloud_metadata_url }};</entry>
-        </system>
-    </sysinfo>
     <features>
         <acpi/>
         <apic/>
@@ -48,19 +41,26 @@
         </disk>
 
 {% endfor %}
+        <disk type='file' device='cdrom'>
+            <driver name='qemu' type='raw'/>
+            <source file='/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/{{ libvirt_create_machine.name }}-cloudinit.iso'/>
+            <target dev='sda' bus='sata'/>
+            <readonly/>
+        </disk>
 
-{% for network in libvirt_create_machine.networks %}
-        <interface type="{{ network.type }}">
-{% if network.source | default("none") != "none" %}
-            <source {{ network.type }}="{{ network.source }}"/>
-{% endif %}
-{% if network.target | default("") != "" %}
-            <target dev="{{ network.target }}"/>
-{% endif %}
-            <mac address="{{ network.mac }}"/>
+{% if libvirt_create_machine.network_source is defined %}
+        <interface type="{{ libvirt_create_machine.network_type | default('bridge') }}">
+            <source {{ libvirt_create_machine.network_type | default('bridge') }}="{{ libvirt_create_machine.network_source }}"/>
+            <mac address="{{ libvirt_create_mac }}"/>
             <model type="virtio"/>
         </interface>
-{% endfor %}
+{% else %}
+        <interface type="ethernet">
+            <target dev="{{ libvirt_create_ifname }}"/>
+            <mac address="{{ libvirt_create_mac }}"/>
+            <model type="virtio"/>
+        </interface>
+{% endif %}
 
         <controller type="pci" index="0" model="pci-root"/>
 

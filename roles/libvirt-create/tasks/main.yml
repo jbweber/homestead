@@ -6,6 +6,45 @@
   register: qemu_emulator_stat
   failed_when: not qemu_emulator_stat.stat.exists
 
+- name: Validate VM IP address is defined
+  ansible.builtin.fail:
+    msg: "VM IP address must be defined in libvirt_create_machine.ip"
+  when: libvirt_create_machine.ip is not defined or libvirt_create_machine.ip == ''
+
+- name: Calculate network settings from IP
+  block:
+    - name: Extract IP address without CIDR
+      ansible.builtin.set_fact:
+        libvirt_create_ip_only: "{{ libvirt_create_machine.ip.split('/')[0] }}"
+
+    - name: Split IP address into octets
+      ansible.builtin.set_fact:
+        libvirt_create_ip_octets: "{{ libvirt_create_ip_only.split('.') }}"
+
+    - name: Calculate MAC address from IP address
+      ansible.builtin.set_fact:
+        libvirt_create_mac: >-
+          be:ef:{{ '%02x:%02x:%02x:%02x' | format(
+            libvirt_create_ip_octets[0] | int,
+            libvirt_create_ip_octets[1] | int,
+            libvirt_create_ip_octets[2] | int,
+            libvirt_create_ip_octets[3] | int
+          ) }}
+
+    - name: Calculate interface name from IP address
+      ansible.builtin.set_fact:
+        libvirt_create_ifname: >-
+          vm{{ '%02x%02x%02x%02x' | format(
+            libvirt_create_ip_octets[0] | int,
+            libvirt_create_ip_octets[1] | int,
+            libvirt_create_ip_octets[2] | int,
+            libvirt_create_ip_octets[3] | int
+          ) }}
+
+    - name: Determine if gateway is on-link (needed for /32 and /31 IPs)
+      ansible.builtin.set_fact:
+        libvirt_create_gateway_onlink: "{{ libvirt_create_machine.ip.endswith('/32') or libvirt_create_machine.ip.endswith('/31') }}"
+
 - name: Resolve VM image template
   ansible.builtin.set_fact:
     libvirt_create_resolved_image: "{{ vm_images[libvirt_create_machine.image_template | default(vm_default_image)] }}"
@@ -111,10 +150,75 @@
   with_items: '{{ libvirt_create_machine.data_disks | default([]) }}'
   when: vm_status.status is not defined
 
+- name: Gather facts for cloud-init templates
+  ansible.builtin.setup:
+  when: vm_status.status is not defined
+
+- name: Create cloud-init temp directory
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: 'cloudinit-{{ libvirt_create_machine.name }}-'
+  register: cloudinit_tmpdir
+  when: vm_status.status is not defined
+
+- name: Generate user-data
+  ansible.builtin.template:
+    src: user-data.j2
+    dest: "{{ cloudinit_tmpdir.path }}/user-data"
+    owner: root
+    group: root
+    mode: '0644'
+  when: vm_status.status is not defined
+
+- name: Generate meta-data
+  ansible.builtin.template:
+    src: meta-data.j2
+    dest: "{{ cloudinit_tmpdir.path }}/meta-data"
+    owner: root
+    group: root
+    mode: '0644'
+  when: vm_status.status is not defined
+
+- name: Generate network-config
+  ansible.builtin.template:
+    src: network-config.j2
+    dest: "{{ cloudinit_tmpdir.path }}/network-config"
+    owner: root
+    group: root
+    mode: '0644'
+  when: vm_status.status is not defined
+
+- name: Create cloud-init ISO
+  ansible.builtin.command:
+    cmd: >
+      genisoimage
+      -output /var/lib/libvirt/images/{{ libvirt_create_machine.name }}/{{ libvirt_create_machine.name }}-cloudinit.iso
+      -volid cidata
+      -joliet
+      -rock
+      user-data meta-data network-config
+    chdir: "{{ cloudinit_tmpdir.path }}"
+  args:
+    creates: "/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/{{ libvirt_create_machine.name }}-cloudinit.iso"
+  when: vm_status.status is not defined
+
+- name: Set permissions on cloud-init ISO
+  ansible.builtin.file:
+    path: "/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/{{ libvirt_create_machine.name }}-cloudinit.iso"
+    owner: qemu
+    group: qemu
+    mode: '0644'
+  when: vm_status.status is not defined
+
+- name: Remove cloud-init temp directory
+  ansible.builtin.file:
+    path: "{{ cloudinit_tmpdir.path }}"
+    state: absent
+  when: vm_status.status is not defined
 
 - name: Place the virtual machine XML
   ansible.builtin.template:
-    src: 'kvm.xml'
+    src: 'kvm.xml.j2'
     dest: "/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/kvm.xml"
     owner: root
     group: root
@@ -124,7 +228,7 @@
 - name: Define the virtual machine
   community.libvirt.virt:
     command: define
-    xml: '{{ lookup("template", "kvm.xml") }}'
+    xml: '{{ lookup("template", "kvm.xml.j2") }}'
   when: vm_status.status is not defined
 
 - name: Start the virtual machine

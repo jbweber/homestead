@@ -1,0 +1,18 @@
+version: 2
+ethernets:
+  eth0:
+    match:
+      macaddress: "{{ libvirt_create_mac }}"
+    addresses:
+      - {{ libvirt_create_machine.ip }}
+    routes:
+      - to: 0.0.0.0/0
+        via: {{ libvirt_create_machine.gateway }}
+{% if libvirt_create_gateway_onlink %}
+        on-link: true
+{% endif %}
+    nameservers:
+      addresses:
+{% for dns in libvirt_create_machine.dns_servers %}
+        - {{ dns }}
+{% endfor %}

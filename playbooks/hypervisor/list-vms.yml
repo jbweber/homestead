@@ -1,15 +1,32 @@
 ---
 - name: List VMs for hypervisor
   hosts: hypervisor
+  become: true
   gather_facts: false
   tasks:
     - name: Fail if more than one host is targeted
       ansible.builtin.fail:
         msg: "You must limit the playbook to a single host using --limit"
       when: ansible_play_hosts | length != 1
-    - name: Show VMs defined in inventory
+    - name: Collect all defined VMs
+      ansible.builtin.set_fact:
+        standard_vms: "{{ hypervisor_config.machines.keys() | list if hypervisor_config.machines is defined else [] }}"
+        bgp_vms: "{{ hypervisor_bgp_machines.keys() | list if hypervisor_bgp_machines is defined else [] }}"
+
+    - name: Show VMs defined in inventory (Standard mode)
       ansible.builtin.debug:
-        msg: "VMs defined for {{ inventory_hostname }}: {{ hypervisor_config.machines.keys() | list }}"
+        msg: "Standard VMs: {{ standard_vms }}"
+      when: standard_vms | length > 0
+
+    - name: Show VMs defined in inventory (BGP mode)
+      ansible.builtin.debug:
+        msg: "BGP VMs: {{ bgp_vms }}"
+      when: bgp_vms | length > 0
+
+    - name: Show total defined VMs
+      ansible.builtin.debug:
+        msg: "Total VMs defined for {{ inventory_hostname }}: {{ (standard_vms + bgp_vms) | length }}"
+
     - name: Show running VMs on host
       community.libvirt.virt:
         command: list_vms
