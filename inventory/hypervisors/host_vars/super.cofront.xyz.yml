@@ -1,5 +1,8 @@
 ---
 
+# Enable nested virtualization support for KVM
+hypervisor_prepare_enable_nested_virtualization: true
+
 # BIRD BGP Configuration
 bird_bgp_local_asn: 65009
 bird_bgp_neighbor_ip: 192.168.254.1

@@ -4,10 +4,10 @@
   roles:
     - role: systemd_networkd
       become: true
-#    - role: hypervisor_prepare
-#      become: true
-#    - role: libvirt
-#      become: true
+    - role: hypervisor_prepare
+      become: true
+    - role: libvirt
+      become: true
 #    - role: bird
 #      become: true
 #      when: bird_bgp_local_asn is defined

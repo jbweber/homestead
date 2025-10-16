@@ -1,5 +1,8 @@
 ---
 
+# Enable nested virtualization support for KVM
+hypervisor_prepare_enable_nested_virtualization: true
+
 prepare_interface_name: "{{ systemd_networkd_interfaces[0].interface_name }}"
 
 # Configurable metadata service port
