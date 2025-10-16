@@ -5,9 +5,6 @@ hypervisor_prepare_enable_nested_virtualization: true
 
 prepare_interface_name: "{{ systemd_networkd_interfaces[0].interface_name }}"
 
-# Configurable metadata service port
-nocloud_metadata_port: 8041
-nocloud_metadata_url: "http://{{ hypervisor_config.networks[0].address }}:{{ nocloud_metadata_port }}/"
 qemu_emulator: '/usr/bin/qemu-kvm'
 
 systemd_networkd_interfaces:
@@ -282,9 +279,4 @@ hypervisor_machines:
 
     fqdn: 'vm-125.102.cofront.xyz'
 
-    ip: '10.100.102.125/24' 
-
-
-# Kept for backward compatibility with any remaining references
-hypervisor_config:
-  networks: "{{ hypervisor_networks }}"
+    ip: '10.100.102.125/24'

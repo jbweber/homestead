@@ -10,22 +10,16 @@
       when: ansible_play_hosts | length != 1
     - name: Collect all defined VMs
       ansible.builtin.set_fact:
-        standard_vms: "{{ hypervisor_config.machines.keys() | list if hypervisor_config.machines is defined else [] }}"
-        bgp_vms: "{{ hypervisor_bgp_machines.keys() | list if hypervisor_bgp_machines is defined else [] }}"
+        all_vms: "{{ hypervisor_machines.keys() | list if hypervisor_machines is defined else [] }}"
 
-    - name: Show VMs defined in inventory (Standard mode)
+    - name: Show VMs defined in inventory
       ansible.builtin.debug:
-        msg: "Standard VMs: {{ standard_vms }}"
-      when: standard_vms | length > 0
-
-    - name: Show VMs defined in inventory (BGP mode)
-      ansible.builtin.debug:
-        msg: "BGP VMs: {{ bgp_vms }}"
-      when: bgp_vms | length > 0
+        msg: "VMs: {{ all_vms }}"
+      when: all_vms | length > 0
 
     - name: Show total defined VMs
       ansible.builtin.debug:
-        msg: "Total VMs defined for {{ inventory_hostname }}: {{ (standard_vms + bgp_vms) | length }}"
+        msg: "Total VMs defined for {{ inventory_hostname }}: {{ all_vms | length }}"
 
     - name: Show running VMs on host
       community.libvirt.virt:
