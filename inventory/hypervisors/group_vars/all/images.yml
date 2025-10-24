@@ -14,41 +14,15 @@ vm_images:
     download_url: 'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-UEFI-UKI-42-1.1.x86_64.qcow2'
     checksum_url: 'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-42-1.1-x86_64-CHECKSUM'
     checksum_type: 'sha256'
-    
-  ubuntu-24.04-server:
-    filename: 'ubuntu-24.04-server-cloudimg-amd64.img'
-    format: 'qcow2'
-    description: 'Ubuntu 24.04 LTS Server Cloud Image'
-    architecture: 'amd64'
-    download_url: 'https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img'
-    checksum_url: 'https://cloud-images.ubuntu.com/releases/24.04/release/SHA256SUMS'
-    checksum_type: 'sha256'
-    
-  debian-12:
-    filename: 'debian-12-genericcloud-amd64.qcow2'
-    format: 'qcow2'
-    description: 'Debian 12 Generic Cloud Image'
-    architecture: 'amd64'
-    download_url: 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2'
-    checksum_url: 'https://cloud.debian.org/images/cloud/bookworm/latest/SHA512SUMS'
-    checksum_type: 'sha512'
 
-  centos-stream-9:
-    filename: 'CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2'
-    format: 'qcow2'
-    description: 'CentOS Stream 9 GenericCloud Image'
-    architecture: 'x86_64'
-    download_url: 'https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2'
-    checksum_url: 'https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2.SHA256SUM'
-    checksum_type: 'sha256'
 
-  centos-stream-10:
-    filename: 'CentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2'
+  fedora-42-coreos:
+    filename: 'fedora-coreos-42.20250929.3.0-qemu.x86_64.qcow2'
     format: 'qcow2'
-    description: 'CentOS Stream 10 GenericCloud Image'
+    description: 'Fedora CoreOS'
     architecture: 'x86_64'
-    download_url: 'https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2'
-    checksum_url: 'https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2.SHA256SUM'
+    download_url: 'https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/42.20250929.3.0/x86_64/fedora-coreos-42.20250929.3.0-qemu.x86_64.qcow2.xz'
+    checksum_value: 'c096458c7b9c813ea32daa836b4840c438eeb6ef55d08f8b75c03cdc241d85b3'
     checksum_type: 'sha256'
 
 # Default image to use if none specified

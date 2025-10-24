@@ -4,3 +4,4 @@
 vm_image_download_force: false        # Set to true to re-download existing images
 vm_image_download_verify_checksum: true   # Verify checksums after download
 vm_image_download_timeout: 300        # Download timeout in seconds
+vm_image_download_keep_compressed: false  # Keep compressed file after decompression

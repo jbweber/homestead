@@ -47,7 +47,7 @@ hypervisor_machines:
       - '1.1.1.1'
     ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-cloud'
+    image_template: 'fedora-42-coreos'
     boot_disk_size_gb: 20
     memory_gib: 2
     vcpus: 2

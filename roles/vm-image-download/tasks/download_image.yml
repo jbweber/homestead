@@ -4,6 +4,16 @@
   ansible.builtin.set_fact:
     vm_image_download_file_path: "{{ vm_images_base_path }}/{{ vm_image_download_image_config.filename }}"
 
+- name: Detect if download URL is compressed
+  ansible.builtin.set_fact:
+    vm_image_download_is_compressed: "{{ vm_image_download_image_config.download_url | regex_search('\\.(xz|gz|bz2)$') }}"
+    vm_image_download_compression_type: "{{ vm_image_download_image_config.download_url | regex_search('\\.(xz|gz|bz2)$') | default('') | regex_replace('^\\.', '') }}"
+    vm_image_download_compressed_file_path: "{{ vm_images_base_path }}/{{ vm_image_download_image_config.filename }}.{{ vm_image_download_image_config.download_url | regex_search('\\.(xz|gz|bz2)$') | default('') | regex_replace('^\\.', '') }}"
+
+- name: Set download destination path
+  ansible.builtin.set_fact:
+    vm_image_download_dest_path: "{{ vm_image_download_compressed_file_path if vm_image_download_is_compressed else vm_image_download_file_path }}"
+
 - name: Check if image already exists
   ansible.builtin.stat:
     path: "{{ vm_image_download_file_path }}"
@@ -12,7 +22,7 @@
 - name: Download VM image
   ansible.builtin.get_url:
     url: "{{ vm_image_download_image_config.download_url }}"
-    dest: "{{ vm_image_download_file_path }}"
+    dest: "{{ vm_image_download_dest_path }}"
     mode: '0644'
     owner: root
     group: root
@@ -20,6 +30,16 @@
     force: "{{ vm_image_download_force }}"
   register: vm_image_download_result
   when: not vm_image_download_existing_file.stat.exists or vm_image_download_force
+
+- name: Set checksum verification filename
+  ansible.builtin.set_fact:
+    vm_image_download_checksum_filename: "{{ vm_image_download_compressed_file_path | basename if vm_image_download_is_compressed else vm_image_download_image_config.filename }}"
+
+- name: Check if compressed file exists for verification
+  ansible.builtin.stat:
+    path: "{{ vm_image_download_compressed_file_path }}"
+  register: vm_image_download_compressed_file_stat
+  when: vm_image_download_is_compressed
 
 - name: Download checksum file for verification
   ansible.builtin.get_url:
@@ -33,15 +53,16 @@
   when:
     - vm_image_download_verify_checksum
     - vm_image_download_image_config.checksum_url is defined
+    - vm_image_download_image_config.checksum_value is not defined
     - (not vm_image_download_existing_file.stat.exists or vm_image_download_force)
 
-- name: Verify image checksum
+- name: Verify image checksum from checksum file
   ansible.builtin.shell: |
     cd {{ vm_images_base_path }}
-    if grep -q "{{ vm_image_download_image_config.filename }}" {{ vm_image_download_image_name }}.checksum; then
+    if grep -q "{{ vm_image_download_checksum_filename }}" {{ vm_image_download_image_name }}.checksum; then
       {{ vm_image_download_image_config.checksum_type }}sum -c {{ vm_image_download_image_name }}.checksum --ignore-missing
     else
-      echo "Checksum file does not contain entry for {{ vm_image_download_image_config.filename }}"
+      echo "Checksum file does not contain entry for {{ vm_image_download_checksum_filename }}"
       exit 1
     fi
   register: vm_image_download_checksum_result
@@ -49,13 +70,79 @@
   when:
     - vm_image_download_verify_checksum
     - vm_image_download_image_config.checksum_url is defined
+    - vm_image_download_image_config.checksum_value is not defined
     - (vm_image_download_result.changed or not vm_image_download_existing_file.stat.exists or vm_image_download_force)
+    - not vm_image_download_is_compressed or (vm_image_download_compressed_file_stat.stat.exists | default(false))
+
+- name: Verify image checksum from provided checksum value
+  ansible.builtin.shell: |
+    echo "{{ vm_image_download_image_config.checksum_value }}  {{ vm_image_download_checksum_filename }}" | {{ vm_image_download_image_config.checksum_type }}sum -c -
+  args:
+    chdir: "{{ vm_images_base_path }}"
+  register: vm_image_download_checksum_value_result
+  changed_when: false
+  when:
+    - vm_image_download_verify_checksum
+    - vm_image_download_image_config.checksum_value is defined
+    - (vm_image_download_result.changed or not vm_image_download_existing_file.stat.exists or vm_image_download_force)
+    - not vm_image_download_is_compressed or (vm_image_download_compressed_file_stat.stat.exists | default(false))
+
+- name: Decompress image (xz format)
+  ansible.builtin.command:
+    cmd: "unxz --keep {{ vm_image_download_compressed_file_path }}"
+    creates: "{{ vm_image_download_file_path }}"
+  when:
+    - vm_image_download_is_compressed
+    - vm_image_download_compression_type == 'xz'
+    - vm_image_download_result.changed or not vm_image_download_existing_file.stat.exists
+
+- name: Decompress image (gzip format)
+  ansible.builtin.command:
+    cmd: "gunzip --keep {{ vm_image_download_compressed_file_path }}"
+    creates: "{{ vm_image_download_file_path }}"
+  when:
+    - vm_image_download_is_compressed
+    - vm_image_download_compression_type == 'gz'
+    - vm_image_download_result.changed or not vm_image_download_existing_file.stat.exists
+
+- name: Decompress image (bzip2 format)
+  ansible.builtin.command:
+    cmd: "bunzip2 --keep {{ vm_image_download_compressed_file_path }}"
+    creates: "{{ vm_image_download_file_path }}"
+  when:
+    - vm_image_download_is_compressed
+    - vm_image_download_compression_type == 'bz2'
+    - vm_image_download_result.changed or not vm_image_download_existing_file.stat.exists
+
+- name: Set proper permissions on decompressed image
+  ansible.builtin.file:
+    path: "{{ vm_image_download_file_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  when:
+    - vm_image_download_is_compressed
+    - vm_image_download_result.changed or not vm_image_download_existing_file.stat.exists
+
+- name: Remove compressed file after decompression
+  ansible.builtin.file:
+    path: "{{ vm_image_download_compressed_file_path }}"
+    state: absent
+  when:
+    - vm_image_download_is_compressed
+    - not vm_image_download_keep_compressed
+    - vm_image_download_result.changed or not vm_image_download_existing_file.stat.exists
 
 - name: Display image download status
   ansible.builtin.debug:
     msg: >
       Image {{ vm_image_download_image_name }} ({{ vm_image_download_image_config.filename }})
       {% if vm_image_download_result.changed %}downloaded successfully{% else %}already exists{% endif %}
-      {% if vm_image_download_verify_checksum and vm_image_download_image_config.checksum_url is defined %}
-      and checksum verified
+      {% if vm_image_download_is_compressed %}
+      (decompressed from {{ vm_image_download_compression_type }})
+      {% endif %}
+      {% if vm_image_download_checksum_result is defined and vm_image_download_checksum_result is succeeded %}
+      and checksum verified (from file)
+      {% elif vm_image_download_checksum_value_result is defined and vm_image_download_checksum_value_result is succeeded %}
+      and checksum verified (from value)
       {% endif %}
