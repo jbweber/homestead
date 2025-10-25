@@ -1,4 +1,4 @@
-<domain type="kvm">
+<domain type="kvm" xmlns:qemu="http://libvirt.org/schemas/domain/qemu/1.0">
     <name>{{ libvirt_create_machine.name }}</name>
     <memory unit="GiB">{{ libvirt_create_machine.memory_gib }}</memory>
     <vcpu placement="static">{{ libvirt_create_machine.vcpus }}</vcpu>
@@ -41,6 +41,7 @@
         </disk>
 
 {% endfor %}
+{% if not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit)) %}
         <disk type='file' device='cdrom'>
             <driver name='qemu' type='raw'/>
             <source file='/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/{{ libvirt_create_machine.name }}-cloudinit.iso'/>
@@ -48,6 +49,7 @@
             <readonly/>
         </disk>
 
+{% endif %}
 {% if libvirt_create_machine.network_source is defined %}
         <interface type="{{ libvirt_create_machine.network_type | default('bridge') }}">
             <source {{ libvirt_create_machine.network_type | default('bridge') }}="{{ libvirt_create_machine.network_source }}"/>
@@ -80,4 +82,10 @@
         </video>
 {% endif %}
     </devices>
+{% if libvirt_create_machine.fw_cfg_name is defined and libvirt_create_machine.fw_cfg_file is defined %}
+    <qemu:commandline>
+        <qemu:arg value='-fw_cfg'/>
+        <qemu:arg value='name={{ libvirt_create_machine.fw_cfg_name }},file={{ libvirt_create_machine.fw_cfg_file }}'/>
+    </qemu:commandline>
+{% endif %}
 </domain>

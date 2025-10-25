@@ -25,5 +25,14 @@ vm_images:
     checksum_value: 'c096458c7b9c813ea32daa836b4840c438eeb6ef55d08f8b75c03cdc241d85b3'
     checksum_type: 'sha256'
 
+  scos-okd:
+    filename: 'scos-10.0.20250628-0-qemu.x86_64.qcow2'
+    format: 'qcow2'
+    description: 'scos okd'
+    architecture: 'x86_64'
+    download_url: 'https://rhcos.mirror.openshift.com/art/storage/prod/streams/c10s/builds/10.0.20250628-0/x86_64/scos-10.0.20250628-0-qemu.x86_64.qcow2.gz'
+    checksum_value: '5183854e0496825c129ca07c4134ea2c51d8cff80906e76fb00af8a6d0d71ebc'
+    checksum_type: 'sha256'
+
 # Default image to use if none specified
 vm_default_image: 'fedora-42-cloud'

@@ -31,6 +31,7 @@ qemu_emulator: '/usr/bin/qemu-kvm'         # Path to QEMU emulator
 vm_images_base_path: '/var/lib/libvirt/images'  # Base path for VM images
 vm_images: {}                               # VM image repository
 vm_default_image: 'fedora-42-cloud'       # Default image template
+skip_cloudinit: false                       # Skip cloud-init generation (default: false)
 ```
 
 ## Unified VM Configuration
@@ -131,6 +132,7 @@ data_disks:
 ```
 
 ### Cloud-init Configuration
+- `skip_cloudinit`: Skip cloud-init generation for this VM (default: false, uses global `skip_cloudinit` setting)
 - `ssh_keys`: List of SSH public keys for root user (falls back to `hypervisor_ssh_keys` if not defined)
 - `root_password_hash`: Hashed root password (optional, falls back to `cloudinit_root_password_hash` if not defined)
 - `ssh_pwauth`: Enable password authentication (default: false)
@@ -163,6 +165,32 @@ data_disks:
             - "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
 ```
 
+### Example: VM Without Cloud-init
+
+For VMs that don't support cloud-init or have pre-configured images:
+
+```yaml
+---
+- name: Create VM without cloud-init
+  hosts: hypervisor
+  become: true
+  tasks:
+    - name: Create VM using libvirt-create role
+      ansible.builtin.include_role:
+        name: libvirt-create
+      vars:
+        libvirt_create_machine:
+          name: my-custom-vm
+          ip: 10.100.0.51
+          gateway: 10.100.0.1
+          dns_servers: ['8.8.8.8']
+          vcpus: 4
+          memory_gib: 8
+          boot_disk_size_gb: 40
+          image_template: custom-preconfigured-image
+          skip_cloudinit: true  # Skip cloud-init generation
+```
+
 ## How It Works
 
 1. **Validation Phase**
@@ -178,7 +206,7 @@ data_disks:
    - Creates any additional data disks
    - Sets proper ownership and permissions
 
-3. **Cloud-init Phase**
+3. **Cloud-init Phase** (skipped if `skip_cloudinit` is true)
    - Generates user-data (SSH keys, passwords, hostname)
    - Generates meta-data (instance ID, hostname)
    - Generates network-config (networking based on mode)

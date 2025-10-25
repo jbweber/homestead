@@ -34,21 +34,102 @@ systemd_networkd_interfaces:
     bond_name: 'bond0'
     config_type: 'network'
     order: '30'
+  - interface_name: 'br254'
+    interface_type: 'bridge'
+    config_type: 'netdev'
+    order: '40'
+  - interface_name: 'br254'
+    interface_type: 'bridge'
+    config_type: 'network'
+    order: '45'
+    ipv4_address: '10.254.254.2'
+    ipv4_prefix: '24'
+    ipv4_forward: false
+  - interface_name: 'eno4'
+    interface_type: 'bridge-member'
+    bridge_name: 'br254'
+    config_type: 'network'
+    order: '50'
 
 # VM configuration (unified format)
 hypervisor_machines:
-  test-vm:
-    name: 'test-vm'
-    fqdn: 'test-vm.cofront.xyz'
-    ip: '10.55.22.22/32'
-    gateway: '169.254.0.1'
+  bootstrap:
+    name: 'bootstrap'
+    fqdn: 'bootstrap.cofront.xyz'
+    ip: '10.254.254.100/24'
+    gateway: '10.254.254.1'
     dns_servers:
       - '8.8.8.8'
       - '1.1.1.1'
+    network_source: 'br254'
+    network_type: 'bridge'
     ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
-    image_template: 'fedora-42-coreos'
-    boot_disk_size_gb: 20
-    memory_gib: 2
-    vcpus: 2
+    image_template: 'scos-okd'
+    boot_disk_size_gb: 120
+    memory_gib: 16
+    vcpus: 4
     data_disks: []
+    skip_cloudinit: true
+    fw_cfg_name: 'opt/com.coreos/config'
+    fw_cfg_file: '/var/lib/libvirt/images/merged-bootstrap.ign'
+  master-1:
+    name: 'master-1'
+    fqdn: 'master-1.cofront.xyz'
+    ip: '10.254.254.101/24'
+    gateway: '10.254.254.1'
+    dns_servers:
+      - '8.8.8.8'
+      - '1.1.1.1'
+    network_source: 'br254'
+    network_type: 'bridge'
+    ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
+    cpu_mode: 'host-passthrough'
+    image_template: 'scos-okd'
+    boot_disk_size_gb: 120
+    memory_gib: 16
+    vcpus: 4
+    data_disks: []
+    skip_cloudinit: true
+    fw_cfg_name: 'opt/com.coreos/config'
+    fw_cfg_file: '/var/lib/libvirt/images/merged-master.ign'
+  master-2:
+    name: 'master-2'
+    fqdn: 'master-2.cofront.xyz'
+    ip: '10.254.254.102/24'
+    gateway: '10.254.254.1'
+    dns_servers:
+      - '8.8.8.8'
+      - '1.1.1.1'
+    network_source: 'br254'
+    network_type: 'bridge'
+    ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
+    cpu_mode: 'host-passthrough'
+    image_template: 'scos-okd'
+    boot_disk_size_gb: 120
+    memory_gib: 16
+    vcpus: 4
+    data_disks: []
+    skip_cloudinit: true
+    fw_cfg_name: 'opt/com.coreos/config'
+    fw_cfg_file: '/var/lib/libvirt/images/merged-master.ign'
+  master-3:
+    name: 'master-3'
+    fqdn: 'master-3.cofront.xyz'
+    ip: '10.254.254.103/24'
+    gateway: '10.254.254.1'
+    dns_servers:
+      - '8.8.8.8'
+      - '1.1.1.1'
+    network_source: 'br254'
+    network_type: 'bridge'
+    ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
+    cpu_mode: 'host-passthrough'
+    image_template: 'scos-okd'
+    boot_disk_size_gb: 120
+    memory_gib: 16
+    vcpus: 4
+    data_disks: []
+    skip_cloudinit: true
+    fw_cfg_name: 'opt/com.coreos/config'
+    fw_cfg_file: '/var/lib/libvirt/images/merged-master.ign'

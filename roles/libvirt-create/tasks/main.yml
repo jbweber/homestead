@@ -152,14 +152,18 @@
 
 - name: Gather facts for cloud-init templates
   ansible.builtin.setup:
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit))
 
 - name: Create cloud-init temp directory
   ansible.builtin.tempfile:
     state: directory
     prefix: 'cloudinit-{{ libvirt_create_machine.name }}-'
   register: cloudinit_tmpdir
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit))
 
 - name: Generate user-data
   ansible.builtin.template:
@@ -168,7 +172,9 @@
     owner: root
     group: root
     mode: '0644'
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit))
 
 - name: Generate meta-data
   ansible.builtin.template:
@@ -177,7 +183,9 @@
     owner: root
     group: root
     mode: '0644'
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit))
 
 - name: Generate network-config
   ansible.builtin.template:
@@ -186,7 +194,9 @@
     owner: root
     group: root
     mode: '0644'
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit))
 
 - name: Create cloud-init ISO
   ansible.builtin.command:
@@ -200,7 +210,9 @@
     chdir: "{{ cloudinit_tmpdir.path }}"
   args:
     creates: "/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/{{ libvirt_create_machine.name }}-cloudinit.iso"
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit))
 
 - name: Set permissions on cloud-init ISO
   ansible.builtin.file:
@@ -208,13 +220,17 @@
     owner: qemu
     group: qemu
     mode: '0644'
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit))
 
 - name: Remove cloud-init temp directory
   ansible.builtin.file:
     path: "{{ cloudinit_tmpdir.path }}"
     state: absent
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit))
 
 - name: Place the virtual machine XML
   ansible.builtin.template:
