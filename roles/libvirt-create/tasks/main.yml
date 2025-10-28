@@ -45,27 +45,46 @@
       ansible.builtin.set_fact:
         libvirt_create_gateway_onlink: "{{ libvirt_create_machine.ip.endswith('/32') or libvirt_create_machine.ip.endswith('/31') }}"
 
+- name: Determine if creating empty boot disk
+  ansible.builtin.set_fact:
+    libvirt_create_empty_boot_disk: "{{ libvirt_create_machine.use_empty_boot_disk | default(false) }}"
+
+- name: Validate image configuration
+  ansible.builtin.fail:
+    msg: "Either image_template/image_path or use_empty_boot_disk must be specified"
+  when:
+    - not libvirt_create_empty_boot_disk
+    - libvirt_create_machine.image_template is not defined
+    - libvirt_create_machine.image_path is not defined
+
 - name: Resolve VM image template
   ansible.builtin.set_fact:
     libvirt_create_resolved_image: "{{ vm_images[libvirt_create_machine.image_template | default(vm_default_image)] }}"
-  when: libvirt_create_machine.image_template is defined
+  when:
+    - not libvirt_create_empty_boot_disk
+    - libvirt_create_machine.image_template is defined
 
 - name: Set image path and format from template
   ansible.builtin.set_fact:
     libvirt_create_image_path: "{{ vm_images_base_path }}/{{ libvirt_create_resolved_image.filename }}"
     libvirt_create_image_format: "{{ libvirt_create_resolved_image.format }}"
-  when: libvirt_create_machine.image_template is defined
+  when:
+    - not libvirt_create_empty_boot_disk
+    - libvirt_create_machine.image_template is defined
 
 - name: Use custom image path if template not specified
   ansible.builtin.set_fact:
     libvirt_create_image_path: "{{ libvirt_create_machine.image_path }}"
     libvirt_create_image_format: "{{ libvirt_create_machine.image_format }}"
-  when: libvirt_create_machine.image_template is not defined
+  when:
+    - not libvirt_create_empty_boot_disk
+    - libvirt_create_machine.image_template is not defined
 
 - name: Validate image template exists in repository
   ansible.builtin.fail:
     msg: "Image template '{{ libvirt_create_machine.image_template }}' not found in vm_images repository"
   when:
+    - not libvirt_create_empty_boot_disk
     - libvirt_create_machine.image_template is defined
     - libvirt_create_machine.image_template not in vm_images
 
@@ -74,6 +93,14 @@
     path: "{{ libvirt_create_image_path }}"
   register: vm_image_stat
   failed_when: not vm_image_stat.stat.exists
+  when: not libvirt_create_empty_boot_disk
+
+- name: Validate installation ISO exists (if specified)
+  ansible.builtin.stat:
+    path: "{{ libvirt_create_machine.install_iso_path }}"
+  register: install_iso_stat
+  failed_when: not install_iso_stat.stat.exists
+  when: libvirt_create_machine.install_iso_path is defined
 
 - name: Check if VM already exists
   community.libvirt.virt:
@@ -117,13 +144,24 @@
     mode: '0755'
   when: vm_status.status is not defined
 
-- name: Create boot disk snapshot
+- name: Create boot disk snapshot from image
   ansible.builtin.command: |
     qemu-img create -f qcow2 -b {{ libvirt_create_image_path }} -F {{ libvirt_create_image_format }}
     /var/lib/libvirt/images/{{ libvirt_create_machine.name }}/disk_vda.qcow2 {{ libvirt_create_machine.boot_disk_size_gb }}G
   args:
     creates: "/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/disk_vda.qcow2"
-  when: vm_status.status is not defined
+  when:
+    - vm_status.status is not defined
+    - not libvirt_create_empty_boot_disk
+
+- name: Create empty boot disk
+  ansible.builtin.command: |
+    qemu-img create -f qcow2 /var/lib/libvirt/images/{{ libvirt_create_machine.name }}/disk_vda.qcow2 {{ libvirt_create_machine.boot_disk_size_gb }}G
+  args:
+    creates: "/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/disk_vda.qcow2"
+  when:
+    - vm_status.status is not defined
+    - libvirt_create_empty_boot_disk
 
 - name: Set permissions on boot disk
   ansible.builtin.file:

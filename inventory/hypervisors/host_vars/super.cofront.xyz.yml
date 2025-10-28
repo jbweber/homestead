@@ -85,14 +85,15 @@ hypervisor_machines:
     network_type: 'bridge'
     ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
-    image_template: 'scos-okd'
+    use_empty_boot_disk: true
     boot_disk_size_gb: 120
     memory_gib: 16
     vcpus: 4
     data_disks: []
     skip_cloudinit: true
-    fw_cfg_name: 'opt/com.coreos/config'
-    fw_cfg_file: '/var/lib/libvirt/images/merged-master.ign'
+    install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
+    vnc_port: 5901
+    vnc_listen: '0.0.0.0'
   master-2:
     name: 'master-2'
     fqdn: 'master-2.cofront.xyz'
@@ -105,14 +106,15 @@ hypervisor_machines:
     network_type: 'bridge'
     ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
-    image_template: 'scos-okd'
+    use_empty_boot_disk: true
     boot_disk_size_gb: 120
     memory_gib: 16
     vcpus: 4
     data_disks: []
     skip_cloudinit: true
-    fw_cfg_name: 'opt/com.coreos/config'
-    fw_cfg_file: '/var/lib/libvirt/images/merged-master.ign'
+    install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
+    vnc_port: 5902
+    vnc_listen: '0.0.0.0'
   master-3:
     name: 'master-3'
     fqdn: 'master-3.cofront.xyz'
@@ -125,11 +127,12 @@ hypervisor_machines:
     network_type: 'bridge'
     ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
-    image_template: 'scos-okd'
+    use_empty_boot_disk: true
     boot_disk_size_gb: 120
     memory_gib: 16
     vcpus: 4
     data_disks: []
     skip_cloudinit: true
-    fw_cfg_name: 'opt/com.coreos/config'
-    fw_cfg_file: '/var/lib/libvirt/images/merged-master.ign'
+    install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
+    vnc_port: 5903
+    vnc_listen: '0.0.0.0'

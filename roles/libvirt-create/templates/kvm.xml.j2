@@ -5,7 +5,6 @@
     <metadata></metadata>
     <os firmware='efi'>
         <type arch="x86_64">hvm</type>
-        <boot dev="hd"/>
         <bios useserial="yes"/>
     </os>
     <features>
@@ -31,6 +30,7 @@
             <driver name="qemu" type="qcow2" cache="none"/>
             <source file="/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/disk_vda.qcow2"/>
             <target dev="vda" bus="virtio"/>
+            <boot order='1'/>
         </disk>
 
 {% for data_disk in libvirt_create_machine.data_disks | default([]) %}
@@ -41,11 +41,25 @@
         </disk>
 
 {% endfor %}
+{% if libvirt_create_machine.install_iso_path is defined %}
+        <disk type='file' device='cdrom'>
+            <driver name='qemu' type='raw'/>
+            <source file='{{ libvirt_create_machine.install_iso_path }}'/>
+            <target dev='sda' bus='sata'/>
+            <readonly/>
+            <boot order='2'/>
+        </disk>
+
+{% endif %}
 {% if not (libvirt_create_machine.skip_cloudinit | default(skip_cloudinit)) %}
         <disk type='file' device='cdrom'>
             <driver name='qemu' type='raw'/>
             <source file='/var/lib/libvirt/images/{{ libvirt_create_machine.name }}/{{ libvirt_create_machine.name }}-cloudinit.iso'/>
+{% if libvirt_create_machine.install_iso_path is defined %}
+            <target dev='sdb' bus='sata'/>
+{% else %}
             <target dev='sda' bus='sata'/>
+{% endif %}
             <readonly/>
         </disk>
 
