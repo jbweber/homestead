@@ -88,6 +88,9 @@
         </console>
 
         <memballoon model="virtio"/>
+        <rng model="virtio">
+            <backend model="random">/dev/urandom</backend>
+        </rng>
 {% if libvirt_create_machine.vnc_port | default(False) %}
         <input type='tablet' bus='usb'/>
         <graphics type='vnc' port='{{ libvirt_create_machine.vnc_port }}' listen='{{ libvirt_create_machine.vnc_listen | default("127.0.0.1") }}'/>

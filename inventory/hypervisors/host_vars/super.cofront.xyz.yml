@@ -85,13 +85,12 @@ hypervisor_machines:
     network_type: 'bridge'
     ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
-    use_empty_boot_disk: true
+    image_path: '/var/lib/libvirt/images/fedora-43.qcow2'
+    image_format: 'qcow2'
     boot_disk_size_gb: 120
-    memory_gib: 16
-    vcpus: 4
+    memory_gib: 32
+    vcpus: 8
     data_disks: []
-    skip_cloudinit: true
-    install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
     vnc_port: 5901
     vnc_listen: '0.0.0.0'
   master-2:
@@ -108,8 +107,8 @@ hypervisor_machines:
     cpu_mode: 'host-passthrough'
     use_empty_boot_disk: true
     boot_disk_size_gb: 120
-    memory_gib: 16
-    vcpus: 4
+    memory_gib: 32
+    vcpus: 8
     data_disks: []
     skip_cloudinit: true
     install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
@@ -129,8 +128,8 @@ hypervisor_machines:
     cpu_mode: 'host-passthrough'
     use_empty_boot_disk: true
     boot_disk_size_gb: 120
-    memory_gib: 16
-    vcpus: 4
+    memory_gib: 32
+    vcpus: 8
     data_disks: []
     skip_cloudinit: true
     install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
