@@ -15,9 +15,12 @@ if [[ "$HOSTNAME" == "vm-101.102.cofront.xyz" ]]; then
 elif [[ "$HOSTNAME" == "vm-102.102.cofront.xyz" ]]; then
     POD_NETWORK_CIDR="10.101.0.0/20"
     SERVICE_CIDR="10.101.16.0/20"
+elif [[ "$HOSTNAME" == "master-1.okd-1.cofront.xyz" ]]; then
+    POD_NETWORK_CIDR="10.102.0.0/20"
+    SERVICE_CIDR="10.102.16.0/20"
 else
     echo "Unknown hostname: $HOSTNAME"
-    echo "Expected vm-101.102.cofront.xyz or vm-102.102.cofront.xyz"
+    echo "Expected vm-101.102.cofront.xyz, vm-102.102.cofront.xyz, or master-1.okd-1.cofront.xyz"
     exit 1
 fi
 

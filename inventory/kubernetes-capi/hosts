@@ -1,6 +1,6 @@
 [control_plane]
 master-1.okd-1.cofront.xyz ansible_user=fedora
-master-2.odk-1.cofront.xyz ansible_user=fedora
+master-2.okd-1.cofront.xyz ansible_user=fedora
 master-3.okd-1.cofront.xyz ansible_user=fedora
 
 [worker]

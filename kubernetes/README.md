@@ -240,3 +240,235 @@ cilium bgp routes available ipv6 unicast
    ```bash
    kubectl describe ciliumbgpnodeconfigs
    ```
+
+---
+
+# DNS Records for Kubernetes Clusters
+
+## Current Clusters
+
+### Cluster: kubevirt (vm-101.102.cofront.xyz)
+- **Pod CIDR**: 10.100.0.0/20
+- **Service CIDR**: 10.100.16.0/20
+- **Control Plane**: vm-101.102.cofront.xyz
+
+### Cluster: cnidev (vm-102.102.cofront.xyz)
+- **Pod CIDR**: 10.101.0.0/20
+- **Service CIDR**: 10.101.16.0/20
+- **Control Plane**: vm-102.102.cofront.xyz
+
+### Cluster: okd-1
+- **Pod CIDR**: 10.102.0.0/20
+- **Service CIDR**: 10.102.16.0/20
+- **Control Plane Nodes**:
+  - master-1.okd-1.cofront.xyz
+  - master-2.okd-1.cofront.xyz
+  - master-3.okd-1.cofront.xyz
+
+## Route53 UI Paste Format
+
+### For okd-1 cluster (3 masters):
+```
+master-1.okd-1.cofront.xyz    300    A    <MASTER-1-IP>
+master-2.okd-1.cofront.xyz    300    A    <MASTER-2-IP>
+master-3.okd-1.cofront.xyz    300    A    <MASTER-3-IP>
+api.okd-1.cofront.xyz         300    A    <API-ENDPOINT-IP>
+*.apps.okd-1.cofront.xyz      300    A    <INGRESS-IP>
+```
+
+**Notes:**
+- `api.okd-1.cofront.xyz` - For HA, use load balancer IP; for single node, use master-1 IP
+- `*.apps.okd-1.cofront.xyz` - Wildcard for ingress (optional but recommended)
+
+### Generic template for new cluster:
+```
+master-1.<cluster>.cofront.xyz    300    A    <IP>
+master-2.<cluster>.cofront.xyz    300    A    <IP>
+master-3.<cluster>.cofront.xyz    300    A    <IP>
+api.<cluster>.cofront.xyz         300    A    <IP>
+*.apps.<cluster>.cofront.xyz      300    A    <IP>
+```
+
+## DNS Validation
+
+```bash
+dig +short master-1.okd-1.cofront.xyz
+dig +short api.okd-1.cofront.xyz
+dig +short test.apps.okd-1.cofront.xyz
+```
+
+## Using DNS with kubeadm
+
+For HA clusters, specify the API endpoint:
+
+```bash
+sudo kubeadm init \
+  --control-plane-endpoint "api.okd-1.cofront.xyz:6443" \
+  --pod-network-cidr=10.102.0.0/20 \
+  --service-cidr=10.102.16.0/20
+```
+
+---
+
+# Multi-Node Control Plane Setup (HA)
+
+## Overview
+
+For a highly available Kubernetes cluster with multiple control plane nodes, you need to:
+1. Initialize the first control plane node with special flags
+2. Join additional control plane nodes using certificate sharing
+3. Set up a load balancer for the API endpoint (optional but recommended)
+
+## Prerequisites
+
+- DNS records created for all master nodes and API endpoint
+- Load balancer configured (HAProxy, nginx, cloud LB) pointing to all control plane nodes on port 6443
+  - OR use round-robin DNS for `api.<cluster>.cofront.xyz`
+- All nodes have:
+  - Same container runtime (containerd/CRI-O)
+  - Same Kubernetes version packages installed
+  - Network connectivity between all nodes
+  - Time synchronized (NTP)
+
+## Step 1: Initialize First Control Plane Node
+
+On **master-1** only:
+
+```bash
+sudo kubeadm init \
+  --control-plane-endpoint "api.okd-1.cofront.xyz:6443" \
+  --upload-certs \
+  --pod-network-cidr=10.102.0.0/20 \
+  --service-cidr=10.102.16.0/20 \
+  --skip-phases=addon/kube-proxy
+```
+
+**Key flags:**
+- `--control-plane-endpoint`: DNS name for the API endpoint (shared by all masters)
+- `--upload-certs`: Uploads control plane certificates to a Kubernetes Secret for other masters to download
+- `--skip-phases=addon/kube-proxy`: Skip kube-proxy if using Cilium/OVN-K for routing
+
+**Save the output!** You'll see two join commands:
+1. One for joining worker nodes
+2. One for joining control plane nodes (includes `--control-plane` and `--certificate-key`)
+
+## Step 2: Configure kubectl on master-1
+
+```bash
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+## Step 3: Install CNI Plugin
+
+Install your CNI (Cilium, OVN-Kubernetes, etc.) on master-1 before joining other nodes.
+
+```bash
+# Example for Cilium
+./install-cilium.sh
+```
+
+## Step 4: Join Additional Control Plane Nodes
+
+On **master-2** and **master-3**, use the control plane join command from Step 1 output:
+
+```bash
+sudo kubeadm join api.okd-1.cofront.xyz:6443 \
+  --token <token-from-init> \
+  --discovery-token-ca-cert-hash sha256:<hash-from-init> \
+  --control-plane \
+  --certificate-key <cert-key-from-init>
+```
+
+**Note:** The certificate key expires after 2 hours. If you need to join a control plane node later, regenerate it:
+
+```bash
+# On master-1
+sudo kubeadm init phase upload-certs --upload-certs
+```
+
+## Step 5: Configure kubectl on Additional Masters
+
+On **master-2** and **master-3**:
+
+```bash
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+## Step 6: Verify Cluster
+
+```bash
+kubectl get nodes
+kubectl get pods -n kube-system
+kubectl get componentstatuses
+```
+
+All control plane nodes should show as Ready.
+
+## Load Balancer Configuration
+
+### Option 1: HAProxy (Recommended)
+
+On a separate VM or the first master before init:
+
+```haproxy
+# /etc/haproxy/haproxy.cfg
+frontend kubernetes-api
+    bind *:6443
+    mode tcp
+    option tcplog
+    default_backend kubernetes-api-backend
+
+backend kubernetes-api-backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    server master-1 master-1.okd-1.cofront.xyz:6443 check
+    server master-2 master-2.okd-1.cofront.xyz:6443 check
+    server master-3 master-3.okd-1.cofront.xyz:6443 check
+```
+
+### Option 2: Round-Robin DNS
+
+Configure `api.okd-1.cofront.xyz` with multiple A records:
+```
+api.okd-1.cofront.xyz    300    A    <master-1-ip>
+api.okd-1.cofront.xyz    300    A    <master-2-ip>
+api.okd-1.cofront.xyz    300    A    <master-3-ip>
+```
+
+**Note:** Less reliable than a proper load balancer, but simpler for dev/test.
+
+## Troubleshooting
+
+### Certificate Key Expired
+If you see "failed to download certificates" when joining:
+```bash
+# On master-1
+sudo kubeadm init phase upload-certs --upload-certs
+# Use the new certificate key in the join command
+```
+
+### API Endpoint Not Reachable
+- Verify DNS resolution: `dig +short api.okd-1.cofront.xyz`
+- Check firewall: port 6443 must be open between all nodes
+- Test load balancer: `curl -k https://api.okd-1.cofront.xyz:6443/healthz`
+
+### etcd Issues
+View etcd cluster health:
+```bash
+kubectl exec -n kube-system etcd-master-1 -- etcdctl \
+  --cert=/etc/kubernetes/pki/etcd/peer.crt \
+  --key=/etc/kubernetes/pki/etcd/peer.key \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  member list
+```
+
+## References
+
+- Current `install-via-kubeadm.sh` script handles single-node setup
+- For HA setup, modify script to include `--control-plane-endpoint` and `--upload-certs`
+- Create separate `join-control-plane.sh` script for master-2 and master-3
