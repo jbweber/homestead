@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+# Disable DNS (only do DHCP)
+port=0
+
+{% for network in dnsmasq_networks | default([]) %}
+
+# Bind dnsmasq to the interface for this network
+interface={{ network.interface_name }}
+
+dhcp-range=interface:{{ network.interface_name }},{{ network.address }},static,{{ network.netmask }}
+dhcp-option=interface:{{ network.interface_name }},3,{{ network.gateway }}
+dhcp-option=interface:{{ network.interface_name }},6,{{ network.dns_servers | join(',') }}
+dhcp-option=interface:{{ network.interface_name }},15,{{ network.domain_name }}
+
+{% endfor %}
+
+{% for name, data in dnsmasq_dhcp_assignments.items() %}
+{% for network in data.networks %}
+dhcp-host={{ network.mac }},{{ name }},{{ network.ip }},24h
+{% endfor %}
+{% endfor %}

@@ -94,6 +94,10 @@ hypervisor_machines:
     vnc_port: 5901
     vnc_listen: '0.0.0.0'
   master-2:
+    # Old ISO-based configuration (for OKD testing):
+    # use_empty_boot_disk: true
+    # skip_cloudinit: true
+    # install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
     name: 'master-2'
     fqdn: 'master-2.cofront.xyz'
     ip: '10.254.254.102/24'
@@ -105,16 +109,19 @@ hypervisor_machines:
     network_type: 'bridge'
     ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
-    use_empty_boot_disk: true
+    image_path: '/var/lib/libvirt/images/fedora-43.qcow2'
+    image_format: 'qcow2'
     boot_disk_size_gb: 120
     memory_gib: 32
     vcpus: 8
     data_disks: []
-    skip_cloudinit: true
-    install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
     vnc_port: 5902
     vnc_listen: '0.0.0.0'
   master-3:
+    # Old ISO-based configuration (for OKD testing):
+    # use_empty_boot_disk: true
+    # skip_cloudinit: true
+    # install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
     name: 'master-3'
     fqdn: 'master-3.cofront.xyz'
     ip: '10.254.254.103/24'
@@ -126,12 +133,11 @@ hypervisor_machines:
     network_type: 'bridge'
     ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
     cpu_mode: 'host-passthrough'
-    use_empty_boot_disk: true
+    image_path: '/var/lib/libvirt/images/fedora-43.qcow2'
+    image_format: 'qcow2'
     boot_disk_size_gb: 120
     memory_gib: 32
     vcpus: 8
     data_disks: []
-    skip_cloudinit: true
-    install_iso_path: '/var/lib/libvirt/images/okd-1.iso'
     vnc_port: 5903
     vnc_listen: '0.0.0.0'

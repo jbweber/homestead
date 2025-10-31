@@ -1,0 +1,4 @@
+---
+
+ansible_user: <some username>
+ansible_become_password: <some password>
