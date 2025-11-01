@@ -6,44 +6,14 @@
   register: qemu_emulator_stat
   failed_when: not qemu_emulator_stat.stat.exists
 
-- name: Validate VM IP address is defined
+- name: Validate VM network configuration
   ansible.builtin.fail:
-    msg: "VM IP address must be defined in libvirt_create_machine.ip"
-  when: libvirt_create_machine.ip is not defined or libvirt_create_machine.ip == ''
+    msg: "VM must have network_interfaces defined"
+  when: libvirt_create_machine.network_interfaces is not defined or libvirt_create_machine.network_interfaces | length == 0
 
-- name: Calculate network settings from IP
-  block:
-    - name: Extract IP address without CIDR
-      ansible.builtin.set_fact:
-        libvirt_create_ip_only: "{{ libvirt_create_machine.ip.split('/')[0] }}"
-
-    - name: Split IP address into octets
-      ansible.builtin.set_fact:
-        libvirt_create_ip_octets: "{{ libvirt_create_ip_only.split('.') }}"
-
-    - name: Calculate MAC address from IP address
-      ansible.builtin.set_fact:
-        libvirt_create_mac: >-
-          be:ef:{{ '%02x:%02x:%02x:%02x' | format(
-            libvirt_create_ip_octets[0] | int,
-            libvirt_create_ip_octets[1] | int,
-            libvirt_create_ip_octets[2] | int,
-            libvirt_create_ip_octets[3] | int
-          ) }}
-
-    - name: Calculate interface name from IP address
-      ansible.builtin.set_fact:
-        libvirt_create_ifname: >-
-          vm{{ '%02x%02x%02x%02x' | format(
-            libvirt_create_ip_octets[0] | int,
-            libvirt_create_ip_octets[1] | int,
-            libvirt_create_ip_octets[2] | int,
-            libvirt_create_ip_octets[3] | int
-          ) }}
-
-    - name: Determine if gateway is on-link (needed for /32 and /31 IPs)
-      ansible.builtin.set_fact:
-        libvirt_create_gateway_onlink: "{{ libvirt_create_machine.ip.endswith('/32') or libvirt_create_machine.ip.endswith('/31') }}"
+- name: Process network interfaces - calculate MACs and interface names
+  ansible.builtin.set_fact:
+    libvirt_create_network_interfaces: "{{ libvirt_create_machine.network_interfaces | process_network_interfaces }}"
 
 - name: Determine if creating empty boot disk
   ansible.builtin.set_fact:

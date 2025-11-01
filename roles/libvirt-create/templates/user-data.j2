@@ -23,3 +23,17 @@ ssh_pwauth: {{ libvirt_create_machine.ssh_pwauth | default(false) }}
 
 # Preserve cloud-init logs for debugging
 output: {all: '| tee -a /var/log/cloud-init-output.log'}
+
+{% if libvirt_create_machine.console_autologin | default(false) %}
+# Configure serial console autologin for debugging
+runcmd:
+  - |
+    mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d
+    cat > /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf <<'EOF'
+    [Service]
+    ExecStart=
+    ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin fedora %I $TERM
+    EOF
+  - systemctl daemon-reload
+  - systemctl restart serial-getty@ttyS0.service
+{% endif %}

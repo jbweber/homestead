@@ -1,18 +1,26 @@
 version: 2
 ethernets:
-  eth0:
+{% for iface in libvirt_create_network_interfaces %}
+  eth{{ loop.index0 }}:
     match:
-      macaddress: "{{ libvirt_create_mac }}"
+      macaddress: "{{ iface.mac }}"
     addresses:
-      - {{ libvirt_create_machine.ip }}
+      - {{ iface.ip }}
+{%   if iface.gateway is defined %}
+{%     if iface.default_route | default(false) %}
     routes:
       - to: 0.0.0.0/0
-        via: {{ libvirt_create_machine.gateway }}
-{% if libvirt_create_gateway_onlink %}
+        via: {{ iface.gateway }}
+{%       if iface.gateway_onlink %}
         on-link: true
-{% endif %}
+{%       endif %}
+{%     endif %}
+{%   endif %}
+{%   if iface.dns_servers is defined and iface.dns_servers | length > 0 %}
     nameservers:
       addresses:
-{% for dns in libvirt_create_machine.dns_servers %}
+{%     for dns in iface.dns_servers %}
         - {{ dns }}
+{%     endfor %}
+{%   endif %}
 {% endfor %}

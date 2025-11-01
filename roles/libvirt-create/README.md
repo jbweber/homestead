@@ -36,7 +36,7 @@ skip_cloudinit: false                       # Skip cloud-init generation (defaul
 
 ## Unified VM Configuration
 
-All VMs use the same configuration format. The role automatically determines the libvirt attachment type based on whether `network_source` is defined.
+All VMs use the same configuration format with a `network_interfaces` list that supports both single and multiple network interfaces.
 
 ### Configuration Format
 
@@ -44,15 +44,17 @@ All VMs use the same configuration format. The role automatically determines the
 libvirt_create_machine:
   name: 'my-vm'                      # VM name (required)
   fqdn: 'my-vm.example.com'          # Fully qualified domain name (optional)
-  ip: '10.20.30.40/32'               # IP with CIDR (required)
-  gateway: '169.254.0.1'             # Gateway (required)
-  dns_servers:                       # DNS servers (required)
-    - '8.8.8.8'
-    - '1.1.1.1'
 
-  # Libvirt attachment (optional - for bridge/network mode)
-  network_source: 'vm1'              # Bridge or network name (omit for ethernet/BGP mode)
-  network_type: 'bridge'             # 'bridge' or 'network' (default: bridge)
+  # Network interfaces (required)
+  network_interfaces:
+    - ip: '10.20.30.40/32'           # IP with CIDR (required)
+      gateway: '169.254.0.1'         # Gateway (required)
+      dns_servers:                   # DNS servers (required)
+        - '8.8.8.8'
+        - '1.1.1.1'
+      default_route: true            # Set default route (required for primary interface)
+      network_source: 'vm1'          # Bridge or network name (optional - omit for ethernet/BGP mode)
+      network_type: 'bridge'         # 'bridge' or 'network' (default: bridge)
 
   # Hardware
   vcpus: 4
@@ -74,9 +76,11 @@ libvirt_create_machine:
 ```yaml
 my-bgp-vm:
   name: 'bgp-vm'
-  ip: '10.55.22.22/32'
-  gateway: '169.254.0.1'
-  dns_servers: ['8.8.8.8', '1.1.1.1']
+  network_interfaces:
+    - ip: '10.55.22.22/32'
+      gateway: '169.254.0.1'
+      dns_servers: ['8.8.8.8', '1.1.1.1']
+      default_route: true
   vcpus: 2
   memory_gib: 4
   boot_disk_size_gb: 20
@@ -90,11 +94,13 @@ my-bgp-vm:
 ```yaml
 my-bridge-vm:
   name: 'bridge-vm'
-  ip: '10.100.102.101/24'
-  gateway: '10.100.102.1'
-  dns_servers: ['10.100.102.1']
-  network_source: 'vm1'
-  network_type: 'bridge'
+  network_interfaces:
+    - ip: '10.100.102.101/24'
+      gateway: '10.100.102.1'
+      dns_servers: ['10.100.102.1']
+      network_source: 'vm1'
+      network_type: 'bridge'
+      default_route: true
   vcpus: 2
   memory_gib: 4
   boot_disk_size_gb: 20
@@ -103,6 +109,33 @@ my-bridge-vm:
 - Creates bridge interface attached to 'vm1'
 - MAC: `be:ef:0a:64:66:65` (auto-calculated from IP)
 - Normal routing within /24 subnet
+
+**Multiple Interfaces** (dual-homed VM):
+```yaml
+my-dual-vm:
+  name: 'dual-vm'
+  network_interfaces:
+    - ip: '10.254.254.10/24'
+      gateway: '10.254.254.1'
+      dns_servers: ['8.8.8.8', '1.1.1.1']
+      network_source: 'br254'
+      network_type: 'bridge'
+      default_route: true
+    - ip: '10.255.255.10/24'
+      gateway: '10.255.255.1'
+      dns_servers: ['8.8.8.8']
+      network_source: 'br255'
+      network_type: 'bridge'
+      default_route: false
+  vcpus: 4
+  memory_gib: 8
+  boot_disk_size_gb: 40
+  image_template: 'fedora-43-cloud'
+```
+- Creates two bridge interfaces
+- First interface has default route
+- Second interface configured without default route
+- Each interface gets its own MAC address calculated from its IP
 
 ## Common Configuration Options
 
@@ -137,6 +170,7 @@ data_disks:
 - `root_password_hash`: Hashed root password (optional, falls back to `cloudinit_root_password_hash` if not defined)
 - `ssh_pwauth`: Enable password authentication (default: false)
 - `fqdn`: Fully qualified domain name (defaults to `name`)
+- `console_autologin`: Enable autologin on serial console as 'fedora' user for debugging (default: false)
 
 **Note:** SSH keys and root password can be defined either per-VM or globally at the hypervisor level:
 - Per-VM: `libvirt_create_machine.ssh_keys` and `libvirt_create_machine.root_password_hash`

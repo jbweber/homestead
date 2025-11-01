@@ -24,6 +24,9 @@ refresh-images:
 setup-hypervisor hypervisor:
     ansible-playbook -i inventory/hypervisors playbooks/hypervisor/setup.yml --limit {{hypervisor}}
 
+setup-hypervisor-network hypervisor:
+    ansible-playbook -i inventory/hypervisors playbooks/hypervisor/setup.yml --limit {{hypervisor}} --tags systemd-networkd
+
 setup-kubernetes-node cluster:
     ansible-playbook -i inventory/kubernetes-{{cluster}} playbooks/kubernetes/node-setup.yml
 

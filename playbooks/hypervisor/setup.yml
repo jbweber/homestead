@@ -4,12 +4,17 @@
   roles:
     - role: systemd_networkd
       become: true
+      tags: [network, systemd-networkd]
     - role: hypervisor_prepare
       become: true
+      tags: [prepare, hypervisor-prepare]
     - role: libvirt
       become: true
+      tags: [libvirt, virtualization]
     - role: bird
       become: true
       when: bird_bgp_local_asn is defined
+      tags: [bird, bgp, routing]
     - role: vm-image-download
       become: true
+      tags: [images, vm-images]

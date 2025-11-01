@@ -64,19 +64,21 @@
         </disk>
 
 {% endif %}
-{% if libvirt_create_machine.network_source is defined %}
-        <interface type="{{ libvirt_create_machine.network_type | default('bridge') }}">
-            <source {{ libvirt_create_machine.network_type | default('bridge') }}="{{ libvirt_create_machine.network_source }}"/>
-            <mac address="{{ libvirt_create_mac }}"/>
+{% for iface in libvirt_create_network_interfaces %}
+{%   if iface.network_source is defined %}
+        <interface type="{{ iface.network_type | default('bridge') }}">
+            <source {{ iface.network_type | default('bridge') }}="{{ iface.network_source }}"/>
+            <mac address="{{ iface.mac }}"/>
             <model type="virtio"/>
         </interface>
-{% else %}
+{%   else %}
         <interface type="ethernet">
-            <target dev="{{ libvirt_create_ifname }}"/>
-            <mac address="{{ libvirt_create_mac }}"/>
+            <target dev="{{ iface.ifname }}"/>
+            <mac address="{{ iface.mac }}"/>
             <model type="virtio"/>
         </interface>
-{% endif %}
+{%   endif %}
+{% endfor %}
 
         <controller type="pci" index="0" model="pci-root"/>
 
