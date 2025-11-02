@@ -35,6 +35,3 @@ setup-baremetal host:
 
 setup-baremetal-hypervisor host:
     ansible-playbook -i inventory/baremetal playbooks/baremetal/setup-hypervisor.yml --limit {{host}}
-
-prepare-host inventory host:
-    ansible-playbook -i inventory/{{inventory}} playbooks/prepare.yml --limit {{host}}
