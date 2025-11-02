@@ -1,0 +1,42 @@
+---
+
+- name: Install python3-rpm for package_facts module
+  ansible.builtin.dnf:
+    name: python3-rpm
+    state: present
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  when: inventory_hostname is defined
+
+- name: Disable zram swap
+  ansible.builtin.include_role:
+    name: zram
+
+- name: Ensure localhost IPv4 entry exists in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.0\.1\s+'
+    line: '127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4'
+    state: present
+
+- name: Ensure localhost IPv6 entry exists in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^::1\s+'
+    line: '::1         localhost localhost.localdomain localhost6 localhost6.localdomain6'
+    state: present
+
+- name: Add own hostname to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^{{ ansible_default_ipv4.address }}\s+{{ inventory_hostname }}'
+    line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }} {{ inventory_hostname_short }}"
+    state: present
+  when: ansible_default_ipv4.address is defined
+
+- name: Configure network using fedora.linux_system_roles.network
+  ansible.builtin.include_role:
+    name: fedora.linux_system_roles.network
+  when: homestead_base_configure_network | bool

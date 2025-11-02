@@ -1,0 +1,126 @@
+---
+
+- name: Ensure sysctl set
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+  with_items:
+    - net.ipv4.ip_forward
+  when: hypervisor_enable_ip_forward | bool
+
+- name: Load br_netfilter module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+    persistent: present
+  when: hypervisor_disable_bridge_netfilter | bool
+
+- name: Disable netfilter on bridges
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: '0'
+    state: present
+    sysctl_set: true
+    reload: true
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+    - net.bridge.bridge-nf-call-arptables
+  when: hypervisor_disable_bridge_netfilter | bool
+
+- name: Check if firewalld service exists
+  ansible.builtin.stat:
+    path: /usr/lib/systemd/system/firewalld.service
+  register: firewalld_service
+  when: hypervisor_disable_firewall | bool
+
+- name: Check firewalld status
+  ansible.builtin.systemd:
+    name: firewalld
+  register: firewalld_status
+  when:
+    - hypervisor_disable_firewall | bool
+    - firewalld_service.stat.exists
+  ignore_errors: true
+
+- name: Disable and stop firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: stopped
+    enabled: false
+    daemon_reload: true
+  when:
+    - hypervisor_disable_firewall | bool
+    - firewalld_service.stat.exists
+    - firewalld_status.status is defined
+
+# Nested Virtualization Configuration
+- name: Detect CPU vendor
+  ansible.builtin.command: grep -m1 vendor_id /proc/cpuinfo
+  register: cpu_vendor_check
+  changed_when: false
+  when: hypervisor_enable_nested_virtualization | bool
+
+- name: Set CPU vendor fact
+  ansible.builtin.set_fact:
+    cpu_vendor: "{{ 'intel' if 'Intel' in cpu_vendor_check.stdout else 'amd' if 'AMD' in cpu_vendor_check.stdout else 'unknown' }}"
+  when: hypervisor_enable_nested_virtualization | bool
+
+- name: Check if KVM module is loaded
+  ansible.builtin.command: lsmod
+  register: lsmod_output
+  changed_when: false
+  when: hypervisor_enable_nested_virtualization | bool
+
+- name: Enable nested virtualization for Intel CPUs
+  ansible.builtin.copy:
+    content: "options kvm_intel nested=1\n"
+    dest: /etc/modprobe.d/kvm-nested.conf
+    mode: '0644'
+  when:
+    - hypervisor_enable_nested_virtualization | bool
+    - cpu_vendor == 'intel'
+  notify: reload kvm module
+
+- name: Enable nested virtualization for AMD CPUs
+  ansible.builtin.copy:
+    content: "options kvm_amd nested=1\n"
+    dest: /etc/modprobe.d/kvm-nested.conf
+    mode: '0644'
+  when:
+    - hypervisor_enable_nested_virtualization | bool
+    - cpu_vendor == 'amd'
+  notify: reload kvm module
+
+- name: Verify nested virtualization is enabled (Intel)
+  ansible.builtin.command: cat /sys/module/kvm_intel/parameters/nested
+  register: nested_status_intel
+  changed_when: false
+  failed_when: false
+  when:
+    - hypervisor_enable_nested_virtualization | bool
+    - cpu_vendor == 'intel'
+    - "'kvm_intel' in lsmod_output.stdout"
+
+- name: Verify nested virtualization is enabled (AMD)
+  ansible.builtin.command: cat /sys/module/kvm_amd/parameters/nested
+  register: nested_status_amd
+  changed_when: false
+  failed_when: false
+  when:
+    - hypervisor_enable_nested_virtualization | bool
+    - cpu_vendor == 'amd'
+    - "'kvm_amd' in lsmod_output.stdout"
+
+- name: Display nested virtualization status
+  ansible.builtin.debug:
+    msg: >-
+      Nested virtualization status: {{ nested_status_intel.stdout if cpu_vendor == 'intel'
+      else nested_status_amd.stdout if cpu_vendor == 'amd' else 'Unknown' }}
+  when:
+    - hypervisor_enable_nested_virtualization | bool
+    - >-
+      (nested_status_intel is defined and not nested_status_intel.skipped | default(false)
+      and nested_status_intel.rc == 0) or (nested_status_amd is defined
+      and not nested_status_amd.skipped | default(false) and nested_status_amd.rc == 0)

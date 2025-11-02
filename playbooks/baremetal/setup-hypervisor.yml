@@ -1,0 +1,24 @@
+---
+- name: Setup Baremetal Hypervisor
+  hosts: hypervisor
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Fail if more than one host is targeted
+      ansible.builtin.fail:
+        msg: "You must limit the playbook to a single host using --limit"
+      when: ansible_play_hosts | length != 1
+
+    - name: Apply base homestead configuration
+      ansible.builtin.include_role:
+        name: homestead_base
+
+    - name: Configure hypervisor
+      ansible.builtin.include_role:
+        name: hypervisor
+      tags: [hypervisor]
+
+    - name: Install and configure libvirt
+      ansible.builtin.include_role:
+        name: libvirt
+      tags: [libvirt, virtualization]

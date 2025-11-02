@@ -1,0 +1,57 @@
+---
+# Network configuration for clutch
+network_provider: nm
+network_allow_restart: true
+
+network_connections:
+  # Bond interface
+  - name: bond0
+    state: up
+    type: bond
+    interface_name: bond0
+    bond:
+      mode: active-backup
+      miimon: 100
+    cloned_mac: "84:47:09:5c:24:b4"  # MAC of enp1s0 (primary interface)
+    ip:
+      dhcp4: false
+      auto6: false
+      address:
+        - 172.31.255.134/24
+      gateway4: 172.31.255.1
+      dns:
+        - 172.31.255.1
+
+  # First bond member (primary)
+  - name: bond0-port1
+    state: up
+    type: ethernet
+    interface_name: enp1s0
+    controller: bond0
+
+  # Second bond member
+  - name: bond0-port2
+    state: up
+    type: ethernet
+    interface_name: enp2s0
+    controller: bond0
+
+  # Bridge br250
+  - name: br250
+    state: up
+    type: bridge
+    interface_name: br250
+    ip:
+      dhcp4: false
+      auto6: false
+      address:
+        - 10.250.250.2/24
+
+  # VLAN 250 on bond0 as bridge port
+  - name: bond0.250
+    state: up
+    type: vlan
+    interface_name: bond0.250
+    parent: bond0
+    vlan_id: 250
+    controller: br250

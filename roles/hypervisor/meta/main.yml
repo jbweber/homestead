@@ -1,0 +1,13 @@
+---
+galaxy_info:
+  role_name: hypervisor
+  author: jweber
+  description: Configure system for hypervisor use with libvirt/KVM
+  license: MIT
+  min_ansible_version: '2.9'
+  platforms:
+    - name: Fedora
+      versions:
+        - all
+
+dependencies: []

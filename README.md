@@ -9,6 +9,31 @@ When writing Ansible code in this project:
 - Use double quotes for variable expansions (e.g., "{{ variable }}")
 - Exceptions may occur if required by Ansible syntax, but follow this convention whenever possible.
 
+## Ansible Debugging
+
+### Debugging Tasks with `no_log: true`
+
+When Ansible roles or tasks use `no_log: true` to hide sensitive output, you can still see the output for debugging purposes:
+
+**Method**: Use the `ANSIBLE_DEBUG=1` environment variable combined with high verbosity:
+
+```bash
+ANSIBLE_DEBUG=1 ansible-playbook -i inventory/hosts playbook.yml -vvvv
+```
+
+This will show:
+- Detailed SSH connection information
+- Full command execution details
+- Error messages that would normally be censored by `no_log`
+- Python tracebacks and module errors
+
+**Note**: The output from `-vvvv` can be very verbose. You may want to pipe it through `grep` or redirect to a file for easier analysis.
+
+**Example with grep:**
+```bash
+ANSIBLE_DEBUG=1 ansible-playbook -i inventory/hosts playbook.yml -vvvv 2>&1 | grep -A 20 "task name"
+```
+
 ## Hypervisor Management with Justfile
 
 This project uses a `justfile` to automate common hypervisor management tasks. To use these commands, run them from the project root:

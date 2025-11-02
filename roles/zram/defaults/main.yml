@@ -1,0 +1,4 @@
+---
+# Zram configuration mode: 'disable' or 'configure'
+# Currently only 'disable' is supported
+zram_mode: 'disable'

@@ -1,0 +1,3 @@
+---
+# Whether to configure network using fedora.linux_system_roles.network
+homestead_base_configure_network: true

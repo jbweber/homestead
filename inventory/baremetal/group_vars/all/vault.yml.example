@@ -1,0 +1,10 @@
+---
+
+ansible_user: <some username>
+ansible_become_password: <some password>
+
+vault_root_password_plain: 'SOMEVALUE'
+vault_root_password_hash: 'SOMEVALUE'
+
+vault_baremetal_ssh_keys:
+  - 'ssh-ed25519 AAAA...'

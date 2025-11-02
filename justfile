@@ -30,5 +30,11 @@ setup-hypervisor-network hypervisor:
 setup-kubernetes-node cluster:
     ansible-playbook -i inventory/kubernetes-{{cluster}} playbooks/kubernetes/node-setup.yml
 
+setup-baremetal host:
+    ansible-playbook -i inventory/baremetal playbooks/baremetal/setup.yml --limit {{host}}
+
+setup-baremetal-hypervisor host:
+    ansible-playbook -i inventory/baremetal playbooks/baremetal/setup-hypervisor.yml --limit {{host}}
+
 prepare-host inventory host:
     ansible-playbook -i inventory/{{inventory}} playbooks/prepare.yml --limit {{host}}

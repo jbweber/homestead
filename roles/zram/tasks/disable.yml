@@ -1,0 +1,80 @@
+---
+
+- name: Check for active zram swap devices
+  ansible.builtin.shell: |
+    set -o pipefail
+    swapon --show=NAME --noheadings | grep '^/dev/zram' || true
+  register: zram_swap_devices
+  changed_when: false
+
+- name: Disable zram swap
+  ansible.builtin.copy:
+    content: ''
+    dest: /etc/systemd/zram-generator.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: zram_swap_devices.stdout | length > 0
+
+- name: Turn off active zram swap devices
+  ansible.builtin.command: swapoff {{ item }}
+  loop: "{{ zram_swap_devices.stdout_lines }}"
+  when: zram_swap_devices.stdout | length > 0
+  changed_when: true
+
+- name: Find active zram swap units
+  ansible.builtin.shell: |
+    set -o pipefail
+    systemctl list-units --type=swap --state=active --no-legend | grep 'dev-zram' | awk '{print $1}' || true
+  register: zram_swap_units
+  changed_when: false
+
+- name: Stop zram swap units
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: "{{ zram_swap_units.stdout_lines }}"
+  when: zram_swap_units.stdout | length > 0
+
+- name: Disable zram swap units
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: false
+  loop: "{{ zram_swap_units.stdout_lines }}"
+  when: zram_swap_units.stdout | length > 0
+
+- name: Find all zram setup services
+  ansible.builtin.shell: |
+    set -o pipefail
+    systemctl list-units --type=service --all --no-legend --plain | grep 'systemd-zram-setup@' | awk '{print $1}' || true
+  register: zram_setup_services
+  changed_when: false
+
+- name: Stop zram setup services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: "{{ zram_setup_services.stdout_lines }}"
+  when: zram_setup_services.stdout | length > 0
+  failed_when: false
+
+- name: Reset failed state for zram services
+  ansible.builtin.command: systemctl reset-failed {{ item }}
+  loop: "{{ zram_setup_services.stdout_lines }}"
+  when: zram_setup_services.stdout | length > 0
+  changed_when: false
+  failed_when: false
+
+- name: Find zram block devices
+  ansible.builtin.shell: |
+    set -o pipefail
+    ls -1 /dev/zram* 2>/dev/null || true
+  register: zram_devices
+  changed_when: false
+
+- name: Remove zram devices
+  ansible.builtin.command: zramctl --reset {{ item }}
+  loop: "{{ zram_devices.stdout_lines }}"
+  when: zram_devices.stdout | length > 0
+  failed_when: false
+  changed_when: true

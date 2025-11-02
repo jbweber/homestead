@@ -1,0 +1,5 @@
+---
+
+- name: Include disable tasks
+  ansible.builtin.include_tasks: disable.yml
+  when: zram_mode == 'disable'

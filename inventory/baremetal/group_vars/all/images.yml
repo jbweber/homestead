@@ -1,0 +1,38 @@
+---
+
+# VM Image Repository
+# Defines available VM images with their paths, formats, and metadata
+
+vm_images_base_path: '/var/lib/libvirt/images'
+
+vm_images:
+  fedora-42-cloud:
+    filename: 'Fedora-Cloud-Base-UEFI-UKI-42-1.1.x86_64.qcow2'
+    format: 'qcow2'
+    description: 'Fedora 42 Cloud Base with UEFI/UKI support'
+    architecture: 'x86_64'
+    download_url: 'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-UEFI-UKI-42-1.1.x86_64.qcow2'
+    checksum_url: 'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-42-1.1-x86_64-CHECKSUM'
+    checksum_type: 'sha256'
+
+
+  fedora-42-coreos:
+    filename: 'fedora-coreos-42.20250929.3.0-qemu.x86_64.qcow2'
+    format: 'qcow2'
+    description: 'Fedora CoreOS'
+    architecture: 'x86_64'
+    download_url: 'https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/42.20250929.3.0/x86_64/fedora-coreos-42.20250929.3.0-qemu.x86_64.qcow2.xz'
+    checksum_value: 'c096458c7b9c813ea32daa836b4840c438eeb6ef55d08f8b75c03cdc241d85b3'
+    checksum_type: 'sha256'
+
+  scos-okd:
+    filename: 'scos-10.0.20250628-0-qemu.x86_64.qcow2'
+    format: 'qcow2'
+    description: 'scos okd'
+    architecture: 'x86_64'
+    download_url: 'https://rhcos.mirror.openshift.com/art/storage/prod/streams/c10s/builds/10.0.20250628-0/x86_64/scos-10.0.20250628-0-qemu.x86_64.qcow2.gz'
+    checksum_value: '5183854e0496825c129ca07c4134ea2c51d8cff80906e76fb00af8a6d0d71ebc'
+    checksum_type: 'sha256'
+
+# Default image to use if none specified
+vm_default_image: 'fedora-42-cloud'

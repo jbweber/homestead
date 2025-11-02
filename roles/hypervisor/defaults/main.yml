@@ -1,0 +1,16 @@
+---
+# Enable nested virtualization support
+# When enabled, configures KVM to allow nested virtualization (VMs inside VMs)
+hypervisor_enable_nested_virtualization: false
+
+# Enable IP forwarding for VM networking
+hypervisor_enable_ip_forward: true
+
+# Disable firewalld (hypervisor networking often requires custom firewall rules)
+hypervisor_disable_firewall: true
+
+# Disable netfilter on bridges
+# When enabled, prevents iptables/firewalld from filtering bridge traffic
+# This allows VMs to communicate freely even when firewalld is enabled
+# Useful when you want to keep firewalld for host protection but not for VM traffic
+hypervisor_disable_bridge_netfilter: false
