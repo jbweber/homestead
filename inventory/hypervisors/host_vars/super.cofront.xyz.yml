@@ -235,3 +235,45 @@ hypervisor_machines:
     vcpus: 2
     data_disks: []
     console_autologin: true
+  node-2:
+    name: 'node-2'
+    fqdn: 'node-2.dev-2.cofront.xyz'
+    network_interfaces:
+      - ip: '10.255.255.102/24'
+        gateway: '10.255.255.1'
+        dns_servers:
+          - '8.8.8.8'
+          - '1.1.1.1'
+        network_source: 'br255'
+        network_type: 'bridge'
+        default_route: true
+    ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
+    cpu_mode: 'host-passthrough'
+    image_path: '/var/lib/libvirt/images/fedora-43.qcow2'
+    image_format: 'qcow2'
+    boot_disk_size_gb: 120
+    memory_gib: 4
+    vcpus: 2
+    data_disks: []
+    console_autologin: true
+  node-3:
+    name: 'node-3'
+    fqdn: 'node-3.dev-2.cofront.xyz'
+    network_interfaces:
+      - ip: '10.255.255.103/24'
+        gateway: '10.255.255.1'
+        dns_servers:
+          - '8.8.8.8'
+          - '1.1.1.1'
+        network_source: 'br255'
+        network_type: 'bridge'
+        default_route: true
+    ssh_keys: "{{ vault_hypervisor_ssh_keys }}"
+    cpu_mode: 'host-passthrough'
+    image_path: '/var/lib/libvirt/images/fedora-43-cloud-base-ext4.qcow2'
+    image_format: 'qcow2'
+    boot_disk_size_gb: 120
+    memory_gib: 4
+    vcpus: 2
+    data_disks: []
+    console_autologin: true
