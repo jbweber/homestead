@@ -1,0 +1,9 @@
+---
+- name: Configure netboot server
+  hosts: netboot
+  become: true
+  gather_facts: true
+
+  roles:
+    - dnsmasq
+    - images_server

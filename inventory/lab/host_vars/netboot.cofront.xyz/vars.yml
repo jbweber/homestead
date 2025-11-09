@@ -1,0 +1,63 @@
+---
+# dnsmasq configuration for builder node
+dnsmasq_interfaces:
+  - ens2
+
+dnsmasq_dhcp_subnets:
+  - name: "lab"
+    subnet: "10.230.230.0"
+    netmask: "255.255.255.0"
+    mode: "static"
+    gateway: "10.230.230.1"
+    dns_servers:
+      - "10.230.230.1"
+    domain: "cofront.xyz"
+    pxe_targets:
+      default: "boot.ipxe"                          # Standard local boot
+      ironic: "http://10.230.230.11:6180/boot.ipxe" # Metal3 Ironic provisioning
+    hosts:
+      - ip: "10.230.230.10"
+        mac: "be:ef:0a:e6:e6:0a"
+        hostname: "builder"
+      - ip: "10.230.230.11"
+        mac: "be:ef:0a:e6:e6:0b"
+        hostname: "metal3"
+
+      - ip: "10.230.230.101"
+        mac: "be:ef:0a:e6:e6:65"
+        hostname: "br230-vm101"
+      - ip: "10.230.230.102"
+        mac: "be:ef:0a:e6:e6:66"
+        hostname: "br230-vm102"
+      - ip: "10.230.230.103"
+        mac: "be:ef:0a:e6:e6:67"
+        hostname: "br230-vm103"
+      - ip: "10.230.230.104"
+        mac: "be:ef:0a:e6:e6:68"
+        hostname: "br230-vm104"
+      - ip: "10.230.230.105"
+        mac: "be:ef:0a:e6:e6:69"
+        hostname: "br230-vm105"
+      - ip: "10.230.230.106"
+        mac: "be:ef:0a:e6:e6:6a"
+        hostname: "br230-vm106"
+      - ip: "10.230.230.107"
+        mac: "be:ef:0a:e6:e6:6b"
+        hostname: "br230-vm107"
+      - ip: "10.230.230.108"
+        mac: "be:ef:0a:e6:e6:6c"
+        hostname: "br230-vm108"
+      - ip: "10.230.230.109"
+        mac: "be:ef:0a:e6:e6:6d"
+        hostname: "br230-vm109"
+      - ip: "10.230.230.110"
+        mac: "be:ef:0a:e6:e6:6e"
+        hostname: "br230-vm110"
+      
+      - ip: "10.230.230.200"
+        mac: "3c:ec:ef:43:1c:6e"
+        hostname: "super"
+        pxe_target: "ironic"  # Boot to Metal3 Ironic for bare metal provisioning
+
+dnsmasq_dhcp_ignore_unknown: true
+dnsmasq_pxe_server_ip: "{{ ansible_default_ipv4.address }}"

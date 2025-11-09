@@ -50,6 +50,7 @@ node_modules/
 *.key
 *.pem
 vault.yml
+*secret*yaml
 
 /metadata/build/*
 *grimoire.db

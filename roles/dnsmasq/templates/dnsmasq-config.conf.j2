@@ -42,7 +42,11 @@ dhcp-option=tag:{{ subnet.name }},{{ option.number }},{{ option.value }}
 {% if subnet.hosts is defined and subnet.hosts | length > 0 %}
 # {{ subnet.name }} static host assignments
 {% for host in subnet.hosts %}
-dhcp-host={{ host.mac }},{{ host.ip }},set:{{ subnet.name }},{{ host.hostname }}
+{% if host.pxe_target is defined %}
+dhcp-host={{ host.mac }},{{ host.ip }},set:{{ subnet.name }},set:pxe-{{ host.pxe_target }},{{ host.hostname }}
+{% else %}
+dhcp-host={{ host.mac }},{{ host.ip }},set:{{ subnet.name }},set:pxe-default,{{ host.hostname }}
+{% endif %}
 {% endfor %}
 {% endif %}
 
@@ -58,8 +62,6 @@ tftp-root=/var/lib/tftpboot
 tftp-secure
 
 # PXE Boot Configuration
-# NOTE: Future enhancement could support per-subnet TFTP servers by combining
-# subnet tags with architecture tags in dhcp-boot directives
 
 # Match iPXE clients (option 175)
 dhcp-match=set:ipxe,175
@@ -72,5 +74,13 @@ dhcp-match=set:efi-x86_64,option:client-arch,9  # x86_64
 # Non-iPXE EFI clients: boot iPXE loader
 dhcp-boot=tag:!ipxe,tag:efi-x86_64,ipxe-snponly-x86_64.efi,,{{ dnsmasq_pxe_server_ip }}
 
-# iPXE clients: load boot script
-dhcp-boot=tag:ipxe,boot.ipxe,,{{ dnsmasq_pxe_server_ip }}
+# iPXE clients: conditional boot based on pxe_target tags
+{% for subnet in dnsmasq_dhcp_subnets %}
+{% if subnet.pxe_targets is defined %}
+# {{ subnet.name }} subnet PXE targets
+{% for target_name, target_boot in subnet.pxe_targets.items() %}
+dhcp-boot=tag:ipxe,tag:{{ subnet.name }},tag:pxe-{{ target_name }},{{ target_boot }}{% if not target_boot.startswith('http') %},{{ dnsmasq_pxe_server_ip }}{% endif %}
+
+{% endfor %}
+{% endif %}
+{% endfor %}

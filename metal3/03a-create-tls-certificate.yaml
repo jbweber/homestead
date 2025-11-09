@@ -1,0 +1,60 @@
+---
+# Namespace for Ironic deployment
+# this needs to go here because it doesn't exist yet
+# cert needs to exist prior to ironic trying to deploy
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: baremetal-operator-system
+---
+# Self-signed issuer for creating the Ironic TLS certificate
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ironic-selfsigned-issuer
+  namespace: baremetal-operator-system
+spec:
+  selfSigned: {}
+---
+# TLS certificate for Ironic
+# Equivalent to the openssl command from docs:
+# openssl req -x509 -new -subj "/CN=ironic.baremetal-operator-system.svc" \
+#     -addext "subjectAltName = DNS:ironic.baremetal-operator-system.svc,IP:10.230.230.11" \
+#     -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes \
+#     -keyout ironic-tls.key -out ironic-tls.crt
+# kubectl create secret tls ironic-tls -n baremetal-operator-system \
+#     --key=ironic-tls.key --cert=ironic-tls.crt
+#
+# cert-manager will automatically create the ironic-tls secret from this Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ironic-cert
+  namespace: baremetal-operator-system
+spec:
+  # This secret will be created automatically by cert-manager
+  secretName: ironic-tls
+
+  # Certificate validity
+  duration: 8760h  # 1 year
+  renewBefore: 720h  # 30 days before expiry
+
+  # Subject: CN=ironic.baremetal-operator-system.svc
+  commonName: ironic.baremetal-operator-system.svc
+
+  # subjectAltName: DNS:ironic.baremetal-operator-system.svc,IP:10.230.230.11
+  dnsNames:
+    - ironic.baremetal-operator-system.svc
+  ipAddresses:
+    - 10.230.230.11
+
+  # Use ECDSA P-256 (prime256v1) like openssl example
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+
+  # Use the self-signed issuer
+  issuerRef:
+    name: ironic-selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io

@@ -1,0 +1,40 @@
+---
+# Namespace for Ironic deployment
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: baremetal-operator-system
+---
+# Ironic deployment using IrSO
+# This configuration uses virtual media provisioning (no built-in DHCP)
+# DHCP is provided by netboot.cofront.xyz (10.230.230.10)
+apiVersion: ironic.metal3.io/v1alpha1
+kind: Ironic
+metadata:
+  name: ironic
+  namespace: baremetal-operator-system
+spec:
+  # Use Ironic 32.0 (stable)
+  version: "32.0"
+
+  # Configure SSH key for ramdisk debugging (optional but recommended)
+  # deployRamdisk:
+  #   sshKey: "ssh-ed25519 AAAAC3... user@example.com"
+
+  # Network configuration
+  # Single-node setup: Use host IP directly (no VIP/keepalived needed)
+  # Ironic will listen on metal3.cofront.xyz's IP: 10.230.230.11
+  # Interface: ens2
+  #
+  # Note: For multi-node HA setup, add ipAddressManager: keepalived
+  # and use a separate VIP (e.g., 10.230.230.240)
+  networking:
+    interface: "ens2"
+    ipAddress: "10.230.230.11"
+
+  # Enable TLS for security (using cert-manager)
+  # The ironic-tls secret is created by cert-manager from the Certificate resource
+  # created in step 03a (03a-create-tls-certificate.yaml)
+  # NOTE: IrSO does NOT create Certificate resources - you must create them yourself!
+  tls:
+    certificateName: ironic-tls  # References the secret created by cert-manager

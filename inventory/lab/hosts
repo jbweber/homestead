@@ -1,0 +1,5 @@
+[netboot]
+netboot.cofront.xyz ansible_user=fedora
+
+[metal3]
+metal3.cofront.xyz ansible_user=fedora

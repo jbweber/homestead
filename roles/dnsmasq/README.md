@@ -80,6 +80,7 @@ Each subnet in `dnsmasq_dhcp_subnets` supports the following fields:
 | `domain` | Yes | Domain name for this subnet |
 | `lease_time` | No | Lease time (e.g., `24h`, `12h`) - uses dnsmasq default if omitted |
 | `extra_options` | No | List of additional DHCP options (see below) |
+| `pxe_targets` | No | Dictionary of PXE boot targets for conditional booting (see below) |
 | `hosts` | No | List of static host assignments for this subnet (see below) |
 
 ### PXE Boot Configuration
@@ -96,6 +97,75 @@ Each subnet in `dnsmasq_dhcp_subnets` supports the following fields:
 - PXE boot always matches EFI architectures 7 (EFI byte code) and 9 (x86_64)
 - SELinux context restoration is automatic when SELinux is enabled
 - To customize PXE boot behavior, create a custom `boot.ipxe` in `/var/lib/tftpboot/` (role will not overwrite it)
+
+#### Conditional PXE Boot with `pxe_targets`
+
+The role supports conditional PXE boot on a per-host basis using `pxe_targets`. This allows different hosts in the same subnet to boot to different locations (e.g., some hosts boot to Ironic for bare metal provisioning, others boot locally).
+
+**How it works**:
+1. Define `pxe_targets` dictionary in the subnet configuration with boot target names and their boot files/URLs
+2. Add optional `pxe_target` field to individual hosts specifying which target they should use
+3. Hosts without `pxe_target` automatically use the `default` target
+4. Each host is tagged with `pxe-{target_name}` for conditional boot matching
+
+**PXE Targets Field Format**:
+```yaml
+pxe_targets:
+  default: "boot.ipxe"                           # TFTP file for default boot
+  ironic: "http://10.0.0.5:6180/boot.ipxe"       # HTTP URL for Ironic boot
+  custom: "boot-custom.ipxe"                     # Custom TFTP boot script
+```
+
+**Host Field Format**:
+```yaml
+hosts:
+  - ip: "192.0.2.10"
+    mac: "02:00:00:11:22:33"
+    hostname: "baremetal-node1"
+    pxe_target: "ironic"          # Optional: boot to Ironic
+
+  - ip: "192.0.2.11"
+    mac: "02:00:00:aa:bb:cc"
+    hostname: "standard-vm"
+    # No pxe_target specified = uses "default"
+```
+
+**Boot Target URLs**:
+- TFTP files: Specify just the filename (e.g., `boot.ipxe`) - automatically served from TFTP server
+- HTTP URLs: Specify full URL (e.g., `http://192.0.2.5:6180/boot.ipxe`) - iPXE will fetch directly via HTTP
+
+**Complete Example with Metal3/Ironic Integration**:
+```yaml
+dnsmasq_dhcp_subnets:
+  - name: "baremetal"
+    subnet: "192.0.2.0"
+    netmask: "255.255.255.0"
+    mode: "static"
+    gateway: "192.0.2.1"
+    dns_servers:
+      - "192.0.2.1"
+    domain: "example.org"
+    pxe_targets:
+      default: "boot.ipxe"                          # Local boot for standard hosts
+      ironic: "http://192.0.2.5:6180/boot.ipxe"     # Metal3 Ironic for bare metal provisioning
+    hosts:
+      - ip: "192.0.2.50"
+        mac: "02:00:00:aa:bb:01"
+        hostname: "baremetal-node1"
+        pxe_target: "ironic"                        # This host boots to Ironic
+
+      - ip: "192.0.2.101"
+        mac: "02:00:00:aa:bb:02"
+        hostname: "standard-vm"
+        # No pxe_target = uses default (local boot)
+```
+
+This configuration generates dnsmasq rules that:
+1. Tag `baremetal-node1` with `pxe-ironic`
+2. Tag `standard-vm` with `pxe-default`
+3. Create boot directives:
+   - `dhcp-boot=tag:ipxe,tag:baremetal,tag:pxe-ironic,http://192.0.2.5:6180/boot.ipxe`
+   - `dhcp-boot=tag:ipxe,tag:baremetal,tag:pxe-default,boot.ipxe,,192.0.2.1`
 
 ## Multi-Subnet DHCP Configuration
 
