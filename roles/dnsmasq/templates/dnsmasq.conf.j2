@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Base dnsmasq configuration
+# All configuration is done via drop-in files in /etc/dnsmasq.d/
+
+user=dnsmasq
+group=dnsmasq
+conf-dir=/etc/dnsmasq.d,.rpmnew,.rpmsave,.rpmorig

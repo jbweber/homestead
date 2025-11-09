@@ -1,0 +1,76 @@
+# {{ ansible_managed }}
+# dnsmasq drop-in configuration
+
+# DNS is disabled (only DHCP service)
+port=0
+
+# Network Interface Configuration
+{% for iface in dnsmasq_interfaces %}
+interface={{ iface }}
+{% endfor %}
+bind-dynamic
+
+# DHCP Configuration
+{% if dnsmasq_dhcp_ignore_unknown %}
+# Only respond to known DHCP clients (defined in dhcp-host entries)
+dhcp-ignore=!known
+{% endif %}
+
+{% for subnet in dnsmasq_dhcp_subnets %}
+# Subnet: {{ subnet.name }}
+{% if subnet.mode == "static" %}
+dhcp-range=set:{{ subnet.name }},{{ subnet.subnet }},static{% if subnet.lease_time is defined %},{{ subnet.lease_time }}{% endif %}
+
+{% else %}
+dhcp-range=set:{{ subnet.name }},{{ subnet.range }}{% if subnet.lease_time is defined %},{{ subnet.lease_time }}{% endif %}
+
+{% endif %}
+
+# {{ subnet.name }} subnet options
+dhcp-option=tag:{{ subnet.name }},1,{{ subnet.netmask }}
+dhcp-option=tag:{{ subnet.name }},3,{{ subnet.gateway }}
+dhcp-option=tag:{{ subnet.name }},6,{{ subnet.dns_servers | join(',') }}
+dhcp-option=tag:{{ subnet.name }},15,{{ subnet.domain }}
+
+{% if subnet.extra_options is defined and subnet.extra_options | length > 0 %}
+# {{ subnet.name }} additional options
+{% for option in subnet.extra_options %}
+dhcp-option=tag:{{ subnet.name }},{{ option.number }},{{ option.value }}
+{% endfor %}
+{% endif %}
+
+{% if subnet.hosts is defined and subnet.hosts | length > 0 %}
+# {{ subnet.name }} static host assignments
+{% for host in subnet.hosts %}
+dhcp-host={{ host.mac }},{{ host.ip }},set:{{ subnet.name }},{{ host.hostname }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+
+# Enable DHCP logging
+log-dhcp
+
+# TFTP Configuration
+enable-tftp
+tftp-root=/var/lib/tftpboot
+# Only serve files owned by dnsmasq user
+tftp-secure
+
+# PXE Boot Configuration
+# NOTE: Future enhancement could support per-subnet TFTP servers by combining
+# subnet tags with architecture tags in dhcp-boot directives
+
+# Match iPXE clients (option 175)
+dhcp-match=set:ipxe,175
+
+# Match EFI architecture types (option 93)
+dhcp-match=set:efi-x86_64,option:client-arch,7  # EFI byte code
+dhcp-match=set:efi-x86_64,option:client-arch,9  # x86_64
+
+# Boot files for different client types
+# Non-iPXE EFI clients: boot iPXE loader
+dhcp-boot=tag:!ipxe,tag:efi-x86_64,ipxe-snponly-x86_64.efi,,{{ dnsmasq_pxe_server_ip }}
+
+# iPXE clients: load boot script
+dhcp-boot=tag:ipxe,boot.ipxe,,{{ dnsmasq_pxe_server_ip }}

@@ -106,14 +106,28 @@ Variables should be placed according to their scope (from lowest to highest prec
 
 2. **Role Vars** (`roles/*/vars/main.yml`)
    - Internal role variables that should NOT be overridden
-   - Constants and derived values
+   - Constants and derived values that vary by OS/distribution
+   - **Only use for multi-OS roles** - For Fedora/EL-only roles, hardcode values directly
    ```yaml
    ---
    # Internal variables - do not override
+   # Example: paths that differ between OS families
    __hypervisor_config_path: /etc/kvm
    __hypervisor_supported_vendors: [intel, amd]
    ```
    **Prefix internal variables with double underscore `__`**
+
+   **When to use `vars/main.yml`:**
+   - Multi-OS support (Debian vs RedHat paths)
+   - Values that might change between OS versions
+   - Complex derived values from facts
+
+   **When NOT to use `vars/main.yml`:**
+   - Single OS target (Fedora/EL only) - hardcode instead
+   - Standard package names that never change (`dnsmasq`, `libvirt`, etc.)
+   - Standard paths (`/etc/dnsmasq.conf`, `/etc/systemd/system`, etc.)
+
+   **Rationale:** Unnecessary variables add complexity without benefit. If a value never changes in your target environment, hardcode it.
 
 3. **Group Vars** (`inventory/*/group_vars/`)
    - Variables that apply to all hosts in a group
@@ -608,6 +622,32 @@ Each role should have a README.md with:
 - Optional variables with defaults
 - Example usage
 - Dependencies
+
+### Documentation Examples
+
+When documenting roles (in READMEs, defaults, or comments), always use anonymized example data:
+
+- **Domains**: Use `example.org` or `example.com` (RFC 2606 reserved domains)
+- **IP Addresses**: Use RFC 5737 documentation ranges:
+  - `192.0.2.0/24` (TEST-NET-1)
+  - `198.51.100.0/24` (TEST-NET-2)
+  - `203.0.113.0/24` (TEST-NET-3)
+- **MAC Addresses**: Use locally administered addresses with documentation OUI:
+  - Format: `02:00:00:xx:xx:xx` (unicast, locally administered)
+  - Example: `02:00:00:11:22:33`
+- **Hostnames**: Use generic names like `server1`, `host1`, `node1`
+
+**Example**:
+
+```yaml
+# Good - Uses documentation IPs and domains
+dnsmasq_dhcp_gateway: "192.0.2.1"
+dnsmasq_dhcp_domain: "example.org"
+dnsmasq_dhcp_hosts:
+  - ip: "192.0.2.10"
+    mac: "02:00:00:11:22:33"
+    hostname: "server1"
+```
 
 ### Inline Comments
 

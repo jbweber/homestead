@@ -1,0 +1,66 @@
+---
+# Network Interface Configuration
+# List of interfaces to bind dnsmasq to
+# Empty list = bind to all interfaces (with bind-dynamic)
+# Single or multiple interfaces can be specified
+# Supports wildcards (e.g., "ens*", "eth*")
+# Example:
+#   dnsmasq_interfaces:
+#     - ens2
+#     - eth0
+#   Or with wildcards:
+#   dnsmasq_interfaces:
+#     - "ens*"
+dnsmasq_interfaces: []
+
+# DHCP Configuration - Multi-Subnet Support
+# Define one or more subnets with their own DHCP configuration
+# Each subnet is isolated using dnsmasq tags
+#
+# Example:
+# dnsmasq_dhcp_subnets:
+#   - name: "management"              # Tag name for this subnet
+#     subnet: "192.0.2.0"
+#     netmask: "255.255.255.0"
+#     mode: "static"                  # "static" or "dynamic"
+#     range: "192.0.2.50,192.0.2.150"  # Only used if mode is "dynamic"
+#     gateway: "192.0.2.1"
+#     dns_servers:
+#       - "192.0.2.1"
+#       - "1.1.1.1"
+#     domain: "example.org"
+#     lease_time: "24h"               # Optional, uses dnsmasq default if not specified
+#     extra_options:                  # Optional subnet-specific DHCP options
+#       - number: 42
+#         value: "192.0.2.1"          # NTP server
+#     hosts:                          # Static host assignments for this subnet
+#       - ip: "192.0.2.10"
+#         mac: "02:00:00:11:22:33"
+#         hostname: "server1"
+#
+#   - name: "cluster"
+#     subnet: "198.51.100.0"
+#     netmask: "255.255.255.0"
+#     mode: "dynamic"
+#     range: "198.51.100.100,198.51.100.200"
+#     gateway: "198.51.100.1"
+#     dns_servers:
+#       - "198.51.100.1"
+#     domain: "cluster.example.org"
+#     lease_time: "12h"
+#     extra_options:
+#       - number: 26
+#         value: "1500"               # MTU
+#     hosts:
+#       - ip: "198.51.100.10"
+#         mac: "02:00:00:aa:bb:01"
+#         hostname: "node1"
+dnsmasq_dhcp_subnets: []
+
+# Global DHCP Settings
+# Ignore DHCP requests from unknown hosts (not in dhcp-host entries)
+dnsmasq_dhcp_ignore_unknown: true
+
+# PXE Boot Configuration
+# Server IP address for TFTP (used in dhcp-boot)
+dnsmasq_pxe_server_ip: "{{ ansible_default_ipv4.address }}"

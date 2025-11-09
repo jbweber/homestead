@@ -1,0 +1,12 @@
+#!ipxe
+# {{ ansible_managed }}
+# Default iPXE boot script
+# This is a fallback configuration that boots from the local disk
+
+# Show network configuration for debugging
+echo Network configuration:
+ifstat
+
+# Boot from local disk (sanboot)
+echo Booting from local disk...
+sanboot --no-describe --drive 0x80

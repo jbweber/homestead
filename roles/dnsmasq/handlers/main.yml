@@ -4,4 +4,3 @@
   ansible.builtin.systemd:
     name: dnsmasq
     state: restarted
-    enabled: true
