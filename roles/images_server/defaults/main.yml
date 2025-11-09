@@ -1,0 +1,4 @@
+---
+# Document root directory for serving images
+# This directory will be created with nginx:nginx ownership
+images_server_document_root: /var/www/images

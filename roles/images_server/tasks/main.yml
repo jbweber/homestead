@@ -1,0 +1,40 @@
+---
+
+- name: Install nginx package
+  ansible.builtin.dnf:
+    name: nginx
+    state: present
+
+- name: Create images directory
+  ansible.builtin.file:
+    path: "{{ images_server_document_root }}"
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0755'
+
+- name: Restore SELinux context on images directory
+  ansible.builtin.command: restorecon -R {{ images_server_document_root }}
+  changed_when: false
+  when:
+    - ansible_selinux.status is defined
+    - ansible_selinux.status == "enabled"
+
+- name: Deploy nginx configuration
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart nginx
+
+- name: Start nginx service
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+
+- name: Enable nginx service
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: true
