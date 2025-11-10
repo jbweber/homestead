@@ -1,0 +1,44 @@
+---
+# dnsmasq DHCP server configuration for clutch
+# Serves DHCP for the 10.250.250.0/24 subnet (br250)
+
+# Bind to br250 interface only
+dnsmasq_interfaces:
+  - br250
+
+# Ignore DHCP requests from unknown hosts
+dnsmasq_dhcp_ignore_unknown: true
+
+# DHCP configuration for br250 network (capi-1 cluster)
+dnsmasq_dhcp_subnets:
+  - name: "br250"
+    subnet: "10.250.250.0"
+    netmask: "255.255.255.0"
+    mode: "static"
+    gateway: "10.250.250.1"
+    dns_servers:
+      - "10.250.250.1"
+    domain: "capi-1.cofront.xyz"
+    lease_time: "24h"
+
+    # Static host assignments for capi-1 cluster nodes
+    # Note: PXE boot handled via Redfish virtual media, not network PXE
+    hosts:
+      - ip: "10.250.250.20"
+        mac: "be:ef:0a:fa:fa:14"
+        hostname: "master-1"
+
+      - ip: "10.250.250.21"
+        mac: "be:ef:0a:fa:fa:15"
+        hostname: "master-2"
+
+      - ip: "10.250.250.22"
+        mac: "be:ef:0a:fa:fa:16"
+        hostname: "master-3"
+
+      - ip: "10.250.250.23"
+        mac: "be:ef:0a:fa:fa:17"
+        hostname: "worker-1"
+
+# PXE server IP (clutch's br250 IP)
+dnsmasq_pxe_server_ip: "10.250.250.2"
