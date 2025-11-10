@@ -35,3 +35,9 @@ setup-baremetal host:
 
 setup-baremetal-hypervisor host:
     ansible-playbook -i inventory/baremetal playbooks/baremetal/setup-hypervisor.yml --limit {{host}}
+
+create-baremetal-vm host vm:
+    ansible-playbook -i inventory/baremetal playbooks/baremetal/create-vm.yml --limit {{host}} -e vm_name={{vm}}
+
+destroy-baremetal-vm host vm:
+    ansible-playbook -i inventory/baremetal playbooks/baremetal/destroy-vm.yml --limit {{host}} -e vm_name={{vm}}

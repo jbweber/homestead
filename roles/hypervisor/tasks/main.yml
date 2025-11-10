@@ -124,3 +124,78 @@
       (nested_status_intel is defined and not nested_status_intel.skipped | default(false)
       and nested_status_intel.rc == 0) or (nested_status_amd is defined
       and not nested_status_amd.skipped | default(false) and nested_status_amd.rc == 0)
+
+# Libvirt Installation and Configuration
+- name: Install libvirt packages
+  ansible.builtin.package:
+    name: "{{ hypervisor_libvirt_packages }}"
+    state: present
+
+- name: Enable libvirtd socket
+  ansible.builtin.systemd:
+    name: libvirtd.socket
+    enabled: true
+
+- name: Start libvirtd socket
+  ansible.builtin.systemd:
+    name: libvirtd.socket
+    state: started
+
+- name: Remove default libvirt network
+  community.libvirt.virt_net:
+    name: default
+    command: undefine
+    state: absent
+  when: hypervisor_remove_default_network | bool
+  failed_when: false
+
+# Foundry Installation
+- name: Check if foundry is already installed
+  ansible.builtin.stat:
+    path: "{{ hypervisor_foundry_install_path }}"
+  register: foundry_binary
+
+- name: Get installed foundry version
+  ansible.builtin.command: "{{ hypervisor_foundry_install_path }} -v"
+  register: foundry_installed_version
+  changed_when: false
+  failed_when: false
+  when: foundry_binary.stat.exists
+
+- name: Set foundry needs installation fact
+  ansible.builtin.set_fact:
+    foundry_needs_install: >-
+      {{ not foundry_binary.stat.exists or
+         foundry_installed_version.rc != 0 or
+         hypervisor_foundry_version not in foundry_installed_version.stdout }}
+
+- name: Set foundry download filename
+  ansible.builtin.set_fact:
+    foundry_filename: "foundry_{{ hypervisor_foundry_version | regex_replace('^v', '') }}_linux_{{ hypervisor_foundry_arch }}.tar.gz"
+  when: foundry_needs_install | bool
+
+- name: Set foundry download URL
+  ansible.builtin.set_fact:
+    foundry_download_url: "https://github.com/{{ hypervisor_foundry_github_repo }}/releases/download/{{ hypervisor_foundry_version }}/{{ foundry_filename }}"
+  when: foundry_needs_install | bool
+
+- name: Download and extract foundry
+  ansible.builtin.unarchive:
+    src: "{{ foundry_download_url }}"
+    dest: /tmp
+    remote_src: true
+  when: foundry_needs_install | bool
+
+- name: Install foundry binary
+  ansible.builtin.copy:
+    src: /tmp/foundry
+    dest: "{{ hypervisor_foundry_install_path }}"
+    mode: '0755'
+    remote_src: true
+  when: foundry_needs_install | bool
+
+- name: Clean up foundry download
+  ansible.builtin.file:
+    path: /tmp/foundry
+    state: absent
+  when: foundry_needs_install | bool

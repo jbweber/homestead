@@ -1,0 +1,77 @@
+---
+
+- name: Validate VM config structure
+  ansible.builtin.assert:
+    that:
+      - vm_create_config is defined
+      - vm_create_config.apiVersion is defined
+      - vm_create_config.kind is defined
+      - vm_create_config.kind == 'VirtualMachine'
+      - vm_create_config.metadata is defined
+      - vm_create_config.metadata.name is defined
+      - vm_create_config.spec is defined
+    fail_msg: "vm_create_config must be a valid foundry v1alpha1 VirtualMachine spec"
+
+- name: Validate VM spec required fields
+  ansible.builtin.assert:
+    that:
+      - vm_create_config.spec.vcpus is defined
+      - vm_create_config.spec.memoryGiB is defined
+      - vm_create_config.spec.bootDisk is defined
+      - vm_create_config.spec.bootDisk.sizeGB is defined
+      - vm_create_config.spec.bootDisk.image is defined or vm_create_config.spec.bootDisk.empty is defined
+      - vm_create_config.spec.networkInterfaces is defined
+      - vm_create_config.spec.networkInterfaces | length > 0
+    fail_msg: "VM spec is missing required fields (vcpus, memoryGiB, bootDisk, networkInterfaces)"
+
+- name: Validate network interface configuration
+  ansible.builtin.assert:
+    that:
+      - item.ip is defined
+      - item.gateway is defined
+      - item.bridge is defined
+    fail_msg: "Each network interface must have ip, gateway, and bridge defined"
+  loop: "{{ vm_create_config.spec.networkInterfaces }}"
+  loop_control:
+    label: "{{ item.ip | default('no-ip') }}"
+
+- name: Set VM name fact
+  ansible.builtin.set_fact:
+    vm_name: "{{ vm_create_config.metadata.name }}"
+
+- name: Create foundry specs directory
+  ansible.builtin.file:
+    path: "{{ vm_create_specs_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Store VM spec on hypervisor
+  ansible.builtin.copy:
+    content: "{{ vm_create_config | to_nice_yaml }}"
+    dest: "{{ vm_create_specs_dir }}/{{ vm_name }}.yml"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create VM using foundry
+  ansible.builtin.command:
+    cmd: "{{ vm_create_foundry_binary }} create {{ vm_create_specs_dir }}/{{ vm_name }}.yml"
+  register: foundry_create_result
+  changed_when: true
+
+- name: Display foundry output
+  ansible.builtin.debug:
+    var: foundry_create_result.stdout_lines
+
+- name: Get VM status using foundry
+  ansible.builtin.command:
+    cmd: "{{ vm_create_foundry_binary }} get {{ vm_name }} -o yaml"
+  register: foundry_get_result
+  changed_when: false
+  failed_when: false
+
+- name: Display VM status
+  ansible.builtin.debug:
+    msg: "VM '{{ vm_name }}' created successfully"

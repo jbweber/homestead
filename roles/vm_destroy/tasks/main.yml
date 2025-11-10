@@ -1,0 +1,40 @@
+---
+
+- name: Validate VM name is provided
+  ansible.builtin.assert:
+    that:
+      - vm_destroy_name is defined
+      - vm_destroy_name | length > 0
+    fail_msg: "vm_destroy_name must be provided"
+
+- name: Check if VM spec file exists
+  ansible.builtin.stat:
+    path: "{{ vm_destroy_specs_dir }}/{{ vm_destroy_name }}.yml"
+  register: vm_spec_file
+
+- name: Destroy VM using foundry
+  ansible.builtin.command:
+    cmd: "{{ vm_destroy_foundry_binary }} destroy {{ vm_destroy_name }}"
+  register: foundry_destroy_result
+  changed_when: true
+  failed_when: false
+
+- name: Display foundry output
+  ansible.builtin.debug:
+    var: foundry_destroy_result.stdout_lines
+
+- name: Remove VM spec from hypervisor
+  ansible.builtin.file:
+    path: "{{ vm_destroy_specs_dir }}/{{ vm_destroy_name }}.yml"
+    state: absent
+  when: vm_spec_file.stat.exists
+
+- name: Display destruction status
+  ansible.builtin.debug:
+    msg: "VM '{{ vm_destroy_name }}' destroyed successfully"
+  when: foundry_destroy_result.rc == 0
+
+- name: Display destruction failure
+  ansible.builtin.debug:
+    msg: "Failed to destroy VM '{{ vm_destroy_name }}': {{ foundry_destroy_result.stderr }}"
+  when: foundry_destroy_result.rc != 0

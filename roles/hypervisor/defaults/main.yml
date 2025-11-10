@@ -14,3 +14,29 @@ hypervisor_disable_firewall: true
 # This allows VMs to communicate freely even when firewalld is enabled
 # Useful when you want to keep firewalld for host protection but not for VM traffic
 hypervisor_disable_bridge_netfilter: false
+
+# Libvirt packages to install
+hypervisor_libvirt_packages:
+  - bridge-utils
+  - genisoimage
+  - libvirt-client
+  - libvirt-daemon-driver-qemu
+  - libvirt-daemon-kvm
+  - python3-libvirt
+  - qemu-kvm
+  - tar
+
+# Remove libvirt default network
+hypervisor_remove_default_network: true
+
+# Foundry version to install (e.g., 'v0.5.1')
+hypervisor_foundry_version: 'v0.5.1'
+
+# Path where foundry binary will be installed
+hypervisor_foundry_install_path: '/usr/local/bin/foundry'
+
+# GitHub repository for foundry (format: owner/repo)
+hypervisor_foundry_github_repo: 'jbweber/foundry'
+
+# Architecture mapping for foundry downloads
+hypervisor_foundry_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"

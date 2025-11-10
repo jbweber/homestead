@@ -16,9 +16,4 @@
     - name: Configure hypervisor
       ansible.builtin.include_role:
         name: hypervisor
-      tags: [hypervisor]
-
-    - name: Install and configure libvirt
-      ansible.builtin.include_role:
-        name: libvirt
-      tags: [libvirt, virtualization]
+      tags: [hypervisor, virtualization]

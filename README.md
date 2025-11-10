@@ -38,15 +38,30 @@ ANSIBLE_DEBUG=1 ansible-playbook -i inventory/hosts playbook.yml -vvvv 2>&1 | gr
 
 This project uses a `justfile` to automate common hypervisor management tasks. To use these commands, run them from the project root:
 
+### Hypervisor Setup
 - `just update-ansible` — Install/update Ansible collections and roles from `requirements.yml`.
+- `just setup-hypervisor <hypervisor>` — Configure a hypervisor host (installs libvirt, foundry, etc.).
+- `just setup-baremetal-hypervisor <host>` — Configure a baremetal hypervisor.
+
+### VM Management (Foundry-based - NEW!)
+- `just create-baremetal-vm <host> <vm>` — Create a VM using foundry on baremetal host.
+- `just destroy-baremetal-vm <host> <vm>` — Destroy a VM using foundry on baremetal host.
+
+### VM Management (Legacy - Ansible-based)
 - `just list-hypervisors` — List all hypervisor hosts defined in your inventory.
 - `just list-vms <hypervisor>` — Show VMs defined in inventory and running on the specified hypervisor.
-- `just create-vm <hypervisor> <vm>` — Create a VM on the specified hypervisor.
-- `just destroy-vm <hypervisor> <vm>` — Destroy a VM on the specified hypervisor.
+- `just create-vm <hypervisor> <vm>` — Create a VM on the specified hypervisor (uses libvirt-create role).
+- `just destroy-vm <hypervisor> <vm>` — Destroy a VM on the specified hypervisor (uses libvirt-destroy role).
 - `just refresh-images` — Download/update VM base images on all hypervisors.
-- `just setup-hypervisor <hypervisor>` — Configure a hypervisor host.
 
-**Example usage:**
+**Example usage (foundry-based):**
+```sh
+just setup-baremetal-hypervisor clutch.cofront.xyz
+just create-baremetal-vm clutch.cofront.xyz br250-vm101
+just destroy-baremetal-vm clutch.cofront.xyz br250-vm101
+```
+
+**Example usage (legacy):**
 ```sh
 just list-hypervisors
 just list-vms gravity.fe.cofront.xyz
@@ -54,9 +69,46 @@ just create-vm gravity.fe.cofront.xyz vm-101
 just destroy-vm gravity.fe.cofront.xyz vm-101
 ```
 
-### Unified VM Configuration
+### VM Configuration Formats
 
-All VMs use a single, unified configuration format defined in `hypervisor_machines`:
+#### Foundry v1alpha1 Format (NEW!)
+
+VMs managed by foundry use a Kubernetes-style declarative format. VM specs are stored in:
+```
+inventory/<inventory>/host_vars/<hypervisor>/vms/<vm-name>.yml
+```
+
+**Example VM spec:**
+```yaml
+apiVersion: foundry.cofront.xyz/v1alpha1
+kind: VirtualMachine
+metadata:
+  name: br250-vm101
+  labels:
+    environment: development
+spec:
+  vcpus: 2
+  memoryGiB: 4
+  bootDisk:
+    sizeGB: 20
+    image: fedora-43-ext4.qcow2
+  networkInterfaces:
+    - ip: 10.250.250.101/24
+      gateway: 10.250.250.1
+      dnsServers: [8.8.8.8, 1.1.1.1]
+      bridge: br250
+      defaultRoute: true
+  cloudInit:
+    fqdn: br250-vm101.example.com
+    sshAuthorizedKeys:
+      - "{{ vault_hypervisor_ssh_keys | first }}"
+```
+
+See [foundry/DESIGN.md](../foundry/DESIGN.md) for complete v1alpha1 specification.
+
+#### Legacy hypervisor_machines Format
+
+All VMs in the hypervisors inventory use a single, unified configuration format defined in `hypervisor_machines`:
 
 ```yaml
 hypervisor_machines:

@@ -1,0 +1,10 @@
+---
+# Path to foundry binary
+vm_destroy_foundry_binary: '/usr/local/bin/foundry'
+
+# Directory on hypervisor where VM specs are stored
+vm_destroy_specs_dir: '/var/lib/foundry/vms'
+
+# VM name to destroy
+# This should be set by the playbook
+vm_destroy_name: ''

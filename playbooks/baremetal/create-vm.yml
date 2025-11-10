@@ -1,0 +1,44 @@
+---
+- name: Create VM using foundry
+  hosts: hypervisor
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Fail if more than one host is targeted
+      ansible.builtin.fail:
+        msg: "You must limit the playbook to a single host using --limit"
+      when: ansible_play_hosts | length != 1
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Fail if vm_name is not defined or empty
+      ansible.builtin.fail:
+        msg: 'please pass an appropriate VM name with -e vm_name=<name>'
+      when: vm_name is not defined or vm_name == ''
+
+    - name: Find VM config file
+      ansible.builtin.set_fact:
+        vm_config_path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}/vms/{{ vm_name }}.yml"
+
+    - name: Check if VM config exists
+      ansible.builtin.stat:
+        path: "{{ vm_config_path }}"
+      delegate_to: localhost
+      register: vm_config_file
+
+    - name: Fail if VM config not found
+      ansible.builtin.fail:
+        msg: "VM config not found at {{ vm_config_path }}"
+      when: not vm_config_file.stat.exists
+
+    - name: Load VM configuration
+      ansible.builtin.include_vars:
+        file: "{{ vm_config_path }}"
+        name: vm_spec
+
+    - name: Create VM
+      ansible.builtin.include_role:
+        name: vm_create
+      vars:
+        vm_create_config: "{{ vm_spec }}"

@@ -1,0 +1,10 @@
+---
+# Path to foundry binary
+vm_create_foundry_binary: '/usr/local/bin/foundry'
+
+# Directory on hypervisor where VM specs are stored
+vm_create_specs_dir: '/var/lib/foundry/vms'
+
+# VM configuration in foundry v1alpha1 format
+# This should be set by the playbook
+vm_create_config: {}
