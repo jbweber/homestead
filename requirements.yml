@@ -2,28 +2,6 @@
 collections:
   - name: community.general
     version: "11.4.0"
-  - name: community.libvirt
-    version: "2.0.0"
   - name: fedora.linux_system_roles
 
-roles:
-  - name: containerd
-    src: https://github.com/jbweber/ansible-role-containerd.git
-    version: main
-
-  - name: kubernetes_prepare
-    src: https://github.com/jbweber/ansible-role-kubernetes-prepare.git
-    version: main
-
-  - name: hypervisor_prepare
-    src: https://github.com/jbweber/ansible-role-hypervisor-prepare.git
-    version: main
-
-  - name: systemd_networkd
-    src: https://github.com/jbweber/ansible-role-systemd-networkd.git
-    version: main
-
-  - name: libvirt
-    src: https://github.com/jbweber/ansible-role-libvirt.git
-    version: main
-
+roles: []

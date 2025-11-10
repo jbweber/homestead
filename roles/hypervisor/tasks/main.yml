@@ -141,12 +141,20 @@
     name: libvirtd.socket
     state: started
 
-- name: Remove default libvirt network
-  community.libvirt.virt_net:
-    name: default
-    command: undefine
-    state: absent
+- name: Check if default libvirt network exists
+  ansible.builtin.command: virsh net-info default
+  register: default_net_check
+  changed_when: false
+  failed_when: false
   when: hypervisor_remove_default_network | bool
+
+- name: Remove default libvirt network
+  ansible.builtin.command: virsh net-undefine default
+  when:
+    - hypervisor_remove_default_network | bool
+    - default_net_check.rc == 0
+  register: net_undefine_result
+  changed_when: net_undefine_result.rc == 0
   failed_when: false
 
 # Foundry Installation
