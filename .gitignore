@@ -70,3 +70,5 @@ metadata-service/src/instance/
 *.sqlite
 *.sqlite3
 .coverage
+
+/capi/archive
