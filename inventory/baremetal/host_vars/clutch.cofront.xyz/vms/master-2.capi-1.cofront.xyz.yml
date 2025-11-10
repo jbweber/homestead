@@ -1,0 +1,35 @@
+---
+apiVersion: foundry.cofront.xyz/v1alpha1
+kind: VirtualMachine
+metadata:
+  name: master-2.capi-1.cofront.xyz
+  labels:
+    environment: production
+    network: br250
+    cluster: capi-1
+    role: control-plane
+  annotations:
+    description: "CAPI-1 control plane node 2 - managed by Metal3"
+    metal3.io/bmc-type: "redfish-virtualmedia"
+    metal3.io/cluster: "capi-1.cofront.xyz"
+
+spec:
+  # Resource allocation for control plane
+  vcpus: 4
+  memoryGiB: 8
+
+  # Boot disk configuration - empty for Metal3 provisioning
+  bootDisk:
+    sizeGB: 100
+    empty: true
+
+  # Network configuration
+  networkInterfaces:
+    - ip: 10.250.250.21/24
+      gateway: 10.250.250.1
+      dnsServers:
+        - 10.250.250.1
+      bridge: br250
+      defaultRoute: true
+
+  # NO cloudInit section - Metal3 will handle provisioning

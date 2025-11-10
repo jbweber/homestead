@@ -1,0 +1,31 @@
+[Unit]
+Description=Sushy-tools Redfish emulator for libvirt
+Documentation=https://docs.openstack.org/sushy-tools/
+After=libvirtd.socket
+
+[Container]
+Image=quay.io/metal3-io/sushy-tools:latest
+ContainerName=sushy-tools
+
+# Network configuration
+Network=host
+
+# Volume mounts
+Volume=/var/run/libvirt:/var/run/libvirt:z
+Volume={{ sushy_config_dir }}/sushy-emulator.conf:/etc/sushy/sushy-emulator.conf:ro,z
+
+# Environment variables
+Environment=SUSHY_EMULATOR_CONFIG=/etc/sushy/sushy-emulator.conf
+
+# Security options
+SecurityLabelDisable=true
+
+# Pull policy
+PodmanArgs=--pull=missing
+
+[Service]
+Restart=always
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

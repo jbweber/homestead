@@ -1,0 +1,46 @@
+---
+- name: Install podman
+  ansible.builtin.dnf:
+    name: podman
+    state: present
+
+- name: Create sushy-tools configuration directory
+  ansible.builtin.file:
+    path: "{{ sushy_config_dir }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Deploy sushy-emulator configuration
+  ansible.builtin.template:
+    src: sushy-emulator.conf.j2
+    dest: "{{ sushy_config_dir }}/sushy-emulator.conf"
+    mode: '0644'
+    owner: root
+    group: root
+  notify: Restart sushy-tools
+
+- name: Create quadlet directory
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Deploy sushy-tools quadlet unit
+  ansible.builtin.template:
+    src: sushy-tools.container.j2
+    dest: /etc/containers/systemd/sushy-tools.container
+    mode: '0644'
+    owner: root
+    group: root
+  notify: Restart sushy-tools
+
+- name: Enable and start sushy-tools service
+  ansible.builtin.systemd:
+    name: sushy-tools
+    enabled: true
+    state: started
+    daemon_reload: true

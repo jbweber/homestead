@@ -1,0 +1,7 @@
+---
+- name: Setup Sushy-tools on hypervisors
+  hosts: all
+  become: true
+
+  roles:
+    - role: sushy-tools

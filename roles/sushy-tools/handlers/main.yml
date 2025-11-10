@@ -1,0 +1,6 @@
+---
+- name: Restart sushy-tools
+  ansible.builtin.systemd:
+    name: sushy-tools
+    state: restarted
+    daemon_reload: true
