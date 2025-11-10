@@ -179,12 +179,12 @@
 
 - name: Set foundry download filename
   ansible.builtin.set_fact:
-    foundry_filename: "foundry_{{ hypervisor_foundry_version | regex_replace('^v', '') }}_linux_{{ hypervisor_foundry_arch }}.tar.gz"
+    foundry_filename: "foundry_{{ hypervisor_foundry_version }}_linux_{{ hypervisor_foundry_arch }}.tar.gz"
   when: foundry_needs_install | bool
 
 - name: Set foundry download URL
   ansible.builtin.set_fact:
-    foundry_download_url: "https://github.com/{{ hypervisor_foundry_github_repo }}/releases/download/{{ hypervisor_foundry_version }}/{{ foundry_filename }}"
+    foundry_download_url: "https://github.com/{{ hypervisor_foundry_github_repo }}/releases/download/v{{ hypervisor_foundry_version }}/{{ foundry_filename }}"
   when: foundry_needs_install | bool
 
 - name: Download and extract foundry

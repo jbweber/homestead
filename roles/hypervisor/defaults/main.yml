@@ -29,8 +29,8 @@ hypervisor_libvirt_packages:
 # Remove libvirt default network
 hypervisor_remove_default_network: true
 
-# Foundry version to install (e.g., 'v0.5.1')
-hypervisor_foundry_version: 'v0.5.1'
+# Foundry version to install (e.g., '0.5.1' - without 'v' prefix)
+hypervisor_foundry_version: '0.5.1'
 
 # Path where foundry binary will be installed
 hypervisor_foundry_install_path: '/usr/local/bin/foundry'
