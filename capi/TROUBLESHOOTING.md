@@ -294,13 +294,21 @@ KUBECONFIG=kubeconfig.yaml kubectl get nodes
 
 ## Network Configuration Issues
 
-### Metal3DataTemplate networkData not working for bonds/VLANs
+### RECOMMENDED: Use BMH networkData Approach
+
+For all new deployments, use the **BMH networkData approach** (pre-configure network on BareMetalHost before CAPI claims it). This works for both simple and complex configurations and avoids Metal3DataTemplate bugs.
+
+See [README.md - Network Configuration](README.md#network-configuration) for the recommended approach with examples.
+
+### LEGACY: Metal3DataTemplate networkData not working for bonds/VLANs
+
+**Note**: This section is kept for reference for existing deployments. New deployments should use the BMH networkData approach instead.
 
 **Symptoms**: Network configuration using Metal3DataTemplate's `networkData` field fails with bonds or VLANs. Cloud-init generates broken network configuration with literal "None" interfaces.
 
 **Root Cause**: Metal3 renders networkData in the wrong order (bonds before physical interfaces), causing cloud-init to fail when processing forward references. This is a known issue with the Metal3DataTemplate networkData rendering for complex network configurations.
 
-**Solution**: Use nmcli commands in `preKubeadmCommands` instead of Metal3DataTemplate networkData for complex networking (bonds, VLANs, multiple interfaces).
+**Legacy Solution**: Use nmcli commands in `preKubeadmCommands` (DEPRECATED - use BMH networkData instead).
 
 **Recommended approach for bond + VLAN configuration**:
 
@@ -330,24 +338,13 @@ spec:
       - for i in {1..30}; do if getent hosts registry.k8s.io > /dev/null 2>&1; then echo "DNS ready"; break; fi; echo "Waiting for DNS ($i/30)..."; sleep 2; done
 ```
 
-**Why this works**:
-- Bypasses Metal3's buggy network rendering
-- Uses native NetworkManager (standard on Fedora/RHEL)
+**Why nmcli approach worked** (legacy):
+- Bypassed Metal3's buggy network rendering
+- Used native NetworkManager (standard on Fedora/RHEL)
 - Commands execute in order (imperative, not declarative)
 - Easy to debug with `nmcli con show`
-- Production-proven approach
 
-**When to use Metal3DataTemplate networkData**:
-- Simple single-interface DHCP configurations
-- Simple static IP on a single interface
-- No bonds, VLANs, or complex routing
-
-**When to use nmcli in preKubeadmCommands**:
-- Bond interfaces
-- VLAN tagging
-- Multiple interfaces
-- Complex routing
-- Static routes
+**Current recommendation**: Use BMH networkData for all configurations (simple and complex). It's cleaner, easier to maintain, and works reliably for bonds, VLANs, and all network types.
 
 ---
 

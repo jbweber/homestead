@@ -202,6 +202,201 @@ kubectl get pods -A
 
 ---
 
+## Network Configuration
+
+### Recommended Approach: BMH networkData (Pre-configured)
+
+**Status**: ✅ Validated and recommended for all deployments
+
+The recommended approach is to pre-configure network settings on `BareMetalHost` resources before CAPI claims them. This provides clean separation of concerns and works with both simple and complex network configurations.
+
+**How it works**:
+1. Create network configuration secrets using OpenStack network_data.json format
+2. Reference the secret in BMH `spec.networkData` field
+3. Label BMH for CAPI selection
+4. Deploy CAPI cluster - it will claim BMHs and preserve the network config
+5. Cloud-init applies the network configuration during provisioning
+
+**Benefits**:
+- Simpler CAPI manifests (no network logic in preKubeadmCommands)
+- Works for simple configs (single interface, DHCP/static) and complex configs (bonds, VLANs)
+- Easier to update network configs independently of cluster lifecycle
+- Avoids Metal3DataTemplate networkData rendering bugs
+- Same OpenStack format you may already be using
+
+**Example workflow**:
+```bash
+# 1. Create network config secret
+kubectl apply -f network-secrets.yaml
+
+# 2. Update BMH with networkData reference
+kubectl patch bmh my-host --type=merge -p '{
+  "spec": {
+    "networkData": {
+      "name": "my-host-network-data",
+      "namespace": "default"
+    }
+  }
+}'
+
+# 3. Label BMH for CAPI selection (REQUIRED!)
+kubectl label bmh my-host \
+  cluster.x-k8s.io/cluster-name=my-cluster \
+  cluster.x-k8s.io/role=worker
+
+# 4. Deploy CAPI cluster - it will claim the BMH
+kubectl apply -f my-cluster-manifest.yaml
+```
+
+**Network configuration format** (OpenStack network_data.json):
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-host-network-data
+  namespace: default
+type: Opaque
+stringData:
+  networkData: |
+    {
+      "links": [
+        {
+          "id": "eth0",
+          "type": "phy",
+          "ethernet_mac_address": "00:11:22:33:44:55",
+          "name": "eth0"
+        }
+      ],
+      "networks": [
+        {
+          "id": "eth0-network",
+          "link": "eth0",
+          "type": "ipv4",
+          "ip_address": "192.168.1.100",
+          "netmask": "255.255.255.0",
+          "routes": [
+            {
+              "network": "0.0.0.0",
+              "netmask": "0.0.0.0",
+              "gateway": "192.168.1.1"
+            }
+          ],
+          "dns_nameservers": ["192.168.1.1"]
+        }
+      ]
+    }
+```
+
+**For complex configurations** (bonds, VLANs), see [net-config-option.md](net-config-option.md) for detailed examples.
+
+### Legacy Approach: nmcli in preKubeadmCommands (DEPRECATED)
+
+The old approach used nmcli commands in `preKubeadmCommands` to configure networking. This still works but is **not recommended** for new deployments. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for details if you need to maintain existing clusters using this approach.
+
+---
+
+## Hostname Configuration
+
+### Setting FQDN Hostnames via Cloud-init
+
+By default, nodes are named using the BMH resource name (e.g., `capi-1-master-1`). To use fully qualified domain names (FQDNs) as hostnames, use the `metal3.io/fqdn` annotation pattern with Metal3DataTemplate metadata exposure.
+
+#### What is `local-hostname`?
+
+`local-hostname` is a standard metadata key in the cloud-init NoCloud datasource (see [NoCloud datasource docs](https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html)). Metal3's Bare Metal Operator (BMO) passes this metadata to nodes via the config drive, and cloud-init uses it to set the system hostname.
+
+**Metal3 defaults**: By default, BMO sets `local-hostname` to the BareMetalHost resource name. You can override this by using Metal3DataTemplate's `fromAnnotations` feature to populate it from a BMH annotation.
+
+#### Verified Working Configuration
+
+This configuration has been tested and works:
+
+**BareMetalHost with FQDN annotation**:
+```yaml
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: capi-1-master-1
+  namespace: default
+  labels:
+    cluster.x-k8s.io/cluster-name: capi-1
+    cluster.x-k8s.io/role: control-plane
+  annotations:
+    metal3.io/fqdn: master-1.capi-1.example.com  # FQDN for this host
+spec:
+  # ... BMH spec
+```
+
+**Metal3DataTemplate exposing FQDN as `local-hostname`**:
+```yaml
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: Metal3DataTemplate
+metadata:
+  name: capi-1-controlplane-template
+spec:
+  clusterName: capi-1
+  metaData:
+    fromAnnotations:
+    - key: local-hostname              # Cloud-init will use this to set hostname
+      annotation: metal3.io/fqdn       # Read FQDN from BMH annotation
+      object: baremetalhost
+```
+
+**KubeadmControlPlane node registration (use BMH name, NOT FQDN)**:
+```yaml
+spec:
+  kubeadmConfigSpec:
+    initConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data.name }}'  # Use BMH name (e.g., capi-1-master-1)
+    joinConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data.name }}'  # Use BMH name (e.g., capi-1-master-1)
+```
+
+**Result**:
+- System hostname (`hostname -f`): `master-1.capi-1.example.com` (FQDN from annotation)
+- Kubernetes node name: `capi-1-master-1` (BMH name)
+- No manual `hostnamectl` commands needed - cloud-init handles hostname automatically
+
+#### FQDN for Kubernetes Node Names - RESOLVED ✅
+
+The official [Metal3 examples](https://github.com/metal3-io/cluster-api-provider-metal3/blob/main/examples/controlplane/controlplane.yaml#L24) use `'{{ ds.meta_data.local_hostname }}'` for `nodeRegistration.name`, which makes Kubernetes node names use FQDNs.
+
+**Initial Investigation**: Attempted using `local-hostname` (with hyphen) caused jinja template failures. Jinja interprets hyphens as subtraction operators, causing error: `Undefined jinja variable: "local-hostname". Jinja tried subtraction. Perhaps you meant "local_hostname"?`
+
+**Final Solution - Use BMH Names as FQDNs**: The simplest approach is to name BareMetalHost resources with FQDNs directly. Metal3 automatically sets the `local-hostname` metadata field to the BMH resource name, eliminating the need for custom metadata mapping.
+
+**Implementation**:
+1. Name BMH resources with FQDNs: `master-1.capi-1.cofront.xyz` (not `capi-1-master-1`)
+2. Use standard kubeadm nodeRegistration: `name: '{{ ds.meta_data.local_hostname }}'`
+3. No Metal3DataTemplate `fromAnnotations` customization needed - Metal3 defaults work perfectly
+
+**Benefits**:
+- Convention over configuration - leverages Metal3's default behavior
+- Both system hostname AND Kubernetes node name use the FQDN
+- Simpler configuration with no annotation mapping required
+- Aligns with Kubernetes best practices (DNS-compatible resource names support dots)
+
+**Debug Process**: Created debug image (`fedora-43-ext4-k8s-autologin.raw`) with console auto-login (systemd getty drop-ins for ttyS0 and tty1) to access nodes via `virsh console` when SSH failed. Console access revealed the jinja template error in cloud-init logs.
+
+See `/home/jweber/projects/environment-files/capi-1/` for the working configuration:
+- `baremetalhosts.yaml` - BMH definitions with FQDN names
+- `capi-1-bmh-network-experiment.yaml` - Cluster manifest with simplified Metal3DataTemplate
+
+#### Important Notes
+
+**BMH Label Cleanup**: When you delete a CAPI cluster, the `cluster.x-k8s.io/cluster-name` label is removed from BareMetalHosts by CAPI as part of the cleanup process. When redeploying, you must re-add this label (along with the role label) for CAPI to claim the hosts:
+
+```bash
+# Note: Use FQDN BMH names
+kubectl label bmh master-{1,2,3}.capi-1.cofront.xyz worker-1.capi-1.cofront.xyz \
+  cluster.x-k8s.io/cluster-name=capi-1 \
+  cluster.x-k8s.io/role=control-plane  # or worker
+```
+
+---
+
 ## Environment Variables Reference
 
 ### Required Variables
@@ -642,6 +837,20 @@ clusterctl describe cluster <cluster-name> -n default
 - `TROUBLESHOOTING.md` - Detailed troubleshooting guide
 
 ### Environment Files (not in repo)
-- `~/projects/environment-files/<cluster>-variables.rc` - Environment variables
-- `~/projects/environment-files/<cluster>-manifest.yaml` - Generated cluster manifest
-- `~/projects/environment-files/<cluster>-kubeconfig.yaml` - Cluster kubeconfig
+
+**Convention**: All cluster-specific manifests and configuration files are stored in `~/projects/environment-files/` directory (outside the repository).
+
+**Typical structure for a cluster named "capi-1"**:
+```
+~/projects/environment-files/capi-1/
+├── cluster-variables.rc              # Environment variables for cluster generation
+├── capi-1-cluster.yaml              # Generated cluster manifest
+├── capi-1-kubeconfig.yaml           # Cluster kubeconfig (after deployment)
+├── network-data.json                # Network configuration (if applicable)
+└── network-data-secret.yaml         # Kubernetes secret for network config
+```
+
+**Why environment-files?**:
+- Contains sensitive data (kubeconfigs, IPs, host-specific configs)
+- Not checked into git
+- Separated from code/scripts for security

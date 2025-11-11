@@ -1,0 +1,27 @@
+{
+  "links": [
+    {
+      "id": "ens2",
+      "type": "phy",
+      "ethernet_mac_address": "be:ef:0a:fa:fa:16",
+      "name": "ens2"
+    }
+  ],
+  "networks": [
+    {
+      "id": "ens2-network",
+      "link": "ens2",
+      "type": "ipv4",
+      "ip_address": "10.250.250.22",
+      "netmask": "255.255.255.0",
+      "routes": [
+        {
+          "network": "0.0.0.0",
+          "netmask": "0.0.0.0",
+          "gateway": "10.250.250.1"
+        }
+      ],
+      "dns_nameservers": ["10.250.250.1"]
+    }
+  ]
+}
